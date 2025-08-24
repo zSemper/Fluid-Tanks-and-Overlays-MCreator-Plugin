@@ -1,0 +1,1 @@
+The height parameter defines how high the tank overlay should be

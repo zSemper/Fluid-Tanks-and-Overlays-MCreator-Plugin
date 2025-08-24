@@ -1,0 +1,1 @@
+Overlays are visual widgets inside guis (like slots), that have the animated fluid texture with a tooltip with the fluid name, amount, and capacity of the tank.

@@ -1,0 +1,57 @@
+name: Bug report
+description: Create a report to help us improve (search for duplicates first)
+title: "Bug: "
+labels: [bug]
+assignees: []
+body:
+  - type: textarea
+    attributes:
+      label: Issue description
+      description: Explain clearly and concisely what the bug is
+      placeholder: Tell here about the bug/problem
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: How to reproduce this issue?
+      description: Try to explain what you did for the bug to occur. Also incluse a screenshot of your procedure code to recreate it.
+      placeholder: |
+        Step 1: ...
+        Step 2: ...
+        ...
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Minecraft Version
+      description: Which minecraft version did you use?
+      options:
+        - NeoForge 1.21.1
+        - Forge 1.20.1
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: MCreator Version
+      description: Which mcreator version did you use?
+      options:
+        - MCreator 2024.4
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Logs
+      description: |
+        If applicable, include a console error or crash log (full logs, do not crop them, in text format, screenshots of logs are not acceptable) from the Console tab or terminal and steps to reproduce the bug in your workspace.
+        
+        Longer logs should be posted on [GitHub Gists](https://gist.github.com/) (or other paste service) and linked here.
+      placeholder: https://gist.github.com/...
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Additional Context
+      description: If you have any additional context about the issue
+      placeholder: Additional information
+    validations:
+      required: false

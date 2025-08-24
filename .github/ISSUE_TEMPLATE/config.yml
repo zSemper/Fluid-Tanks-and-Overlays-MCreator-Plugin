@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "Check if existing issues already exist"
+    url: https://github.com/zSemper/Fluid-Tanks-and-Overlays-MCreator-Plugin/issues
+    about: The place for issues
+  - name: "FTaO's forum page"
+    url: https://www.mcreator.net/plugin/119133/fluid-tanks-and-overlays
+    about: Alternative place to report bugs or feature requests, also place for support questions
