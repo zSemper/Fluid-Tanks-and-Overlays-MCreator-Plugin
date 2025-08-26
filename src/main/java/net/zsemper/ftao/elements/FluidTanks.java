@@ -9,6 +9,7 @@ import java.util.List;
 
 public class FluidTanks extends GeneratableElement {
     @ModElementReference public String block;
+    public String inteType;
     public List<TankListEntry> tanks;
     @ModElementReference public String gui;
     public List<OverlayListEntry> overlays;
@@ -24,6 +25,7 @@ public class FluidTanks extends GeneratableElement {
         public int size;
         @ModElementReference
         public List<Fluid> fluidRestrictions;
+        public String type;
     }
 
     public static class OverlayListEntry {

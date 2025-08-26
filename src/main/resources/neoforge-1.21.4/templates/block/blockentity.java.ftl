@@ -235,131 +235,210 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 	</#if>
 
 	<#if data.isFluidTank>
-	public final IFluidHandler fluidHandler = new IFluidHandler() {
-		@Override
-		public int getTanks() {
-			return fluidTanks.length;
-		}
+	    public final IFluidHandler fluidHandler = new IFluidHandler() {
+		    @Override
+		    public int getTanks() {
+			    return fluidTanks.length;
+		    }
 
-		@Override
-		public FluidStack getFluidInTank(int tank) {
-			return fluidTanks[tank].getFluid();
-		}
+		    @Override
+		    public FluidStack getFluidInTank(int tank) {
+			    return fluidTanks[tank].getFluid();
+		    }
 
-		@Override
-		public int getTankCapacity(int tank) {
-			return fluidTanks[tank].getCapacity();
-		}
+		    @Override
+            public int getTankCapacity(int tank) {
+			    return fluidTanks[tank].getCapacity();
+		    }
 
-		@Override
-		public boolean isFluidValid(int tank, FluidStack stack) {
-			return fluidTanks[tank].isFluidValid(stack);
-		}
+		    @Override
+		    public boolean isFluidValid(int tank, FluidStack stack) {
+			    return fluidTanks[tank].isFluidValid(stack);
+		    }
 
-		@Override
-		public int fill(FluidStack stack, FluidAction action) {
-			for(FluidTank tank : fluidTanks) {
-				int tankSpace = tank.getCapacity() - tank.getFluidAmount();
+		    @Override
+		    public int fill(FluidStack stack, FluidAction action) {
+		        FluidTank[] tanks = Stream.concat(Arrays.stream(inputTanks), Arrays.stream(ioTanks)).toArray(FluidTank[]::new);
 
-				if(stack.isEmpty()) {
-					return 0;
-				}
+			    for(FluidTank tank : tanks) {
+				    int tankSpace = tank.getCapacity() - tank.getFluidAmount();
 
-				if(!tank.getFluid().isEmpty() && tank.getFluid().getFluid().isSame(stack.getFluid())) {
-					int fillAmount = Math.min(stack.getAmount(), tankSpace);
-					if(fillAmount > 0) {
-						return tank.fill(stack.copyWithAmount(fillAmount), action);
-					} else {
-						return 0;
-					}
-				}
+				    if(stack.isEmpty()) {
+					    return 0;
+				    }
 
-				if(tank.isEmpty() && tank.isFluidValid(stack)) {
-					return tank.fill(stack.copyWithAmount(stack.getAmount()), action);
-				}
-			}
-			return 0;
-		}
+				    if(!tank.getFluid().isEmpty() && tank.getFluid().getFluid().isSame(stack.getFluid())) {
+					    int fillAmount = Math.min(stack.getAmount(), tankSpace);
+					    if(fillAmount > 0) {
+						    return tank.fill(stack.copyWithAmount(fillAmount), action);
+					    } else {
+    						return 0;
+	    				}
+		    		}
 
-		@Override
-		public FluidStack drain(FluidStack stack, FluidAction action) {
-			for(FluidTank tank : fluidTanks) {
-				if(stack.getFluid() == tank.getFluid().getFluid()) {
-					return tank.drain(stack.getAmount(), action);
-				}
-			}
-			return FluidStack.EMPTY;
-		}
+    				if(tank.isEmpty() && tank.isFluidValid(stack)) {
+	    				return tank.fill(stack.copyWithAmount(stack.getAmount()), action);
+		    		}
+    			}
+	    		return 0;
+		    }
 
-		@Override
-		public FluidStack drain(int maxDrain, FluidAction action) {
-			for(FluidTank tank : fluidTanks) {
-				if(tank.getFluidAmount() > 0) {
-					return tank.drain(maxDrain, action);
-				}
-			}
-			return FluidStack.EMPTY;
-		}
-	};
+		    @Override
+		    public FluidStack drain(FluidStack stack, FluidAction action) {
+		        FluidTank[] tanks = Stream.concat(Arrays.stream(outputTanks), Arrays.stream(ioTanks)).toArray(FluidTank[]::new);
 
-	public IFluidHandler getFluidTank() {
-	    return fluidHandler;
-	}
+    			for(FluidTank tank : tanks) {
+	    			if(stack.getFluid() == tank.getFluid().getFluid()) {
+		    			return tank.drain(stack.getAmount(), action);
+			    	}
+			    }
+			    return FluidStack.EMPTY;
+		    }
 
-	private final FluidTank fluidTank0 = new FluidTank(${data.fluidCapacity}
-		<#if data.fluidRestrictions?has_content>, fs -> {
-		<#list data.fluidRestrictions as fluidRestriction>
-            if (fs.getFluid() == ${fluidRestriction}) return true;
-        </#list>
-		return false;
-		}</#if>
-	) {
-		@Override protected void onContentsChanged() {
-			super.onContentsChanged();
-			setChanged();
-			level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
-		}
-	};
+		    @Override
+		    public FluidStack drain(int maxDrain, FluidAction action) {
+		        FluidTank[] tanks = Stream.concat(Arrays.stream(outputTanks), Arrays.stream(ioTanks)).toArray(FluidTank[]::new);
 
-	public FluidTank getFluidTank0() {
-		return fluidTank0;
-	}
+			    for(FluidTank tank : tanks) {
+				    if(tank.getFluidAmount() > 0) {
+					    return tank.drain(maxDrain, action);
+				    }
+			    }
+			    return FluidStack.EMPTY;
+		    }
 
-    <#if fluidTank != "">
-	    <#list fluidTank.tanks as tank>
-	        private final FluidTank fluidTank${tank.index} = new FluidTank(${tank.size}
-	            <#if tank.fluidRestrictions?has_content>
-	                , fs -> {
-	                    <#list tank.fluidRestrictions as restrict>
-	                        if(fs.getFluid() == ${restrict}) return true;
-	                    </#list>
-	                    return false;
-	                }
-	            </#if>
-	        ) {
-	            @Override
-	            protected void onContentsChanged() {
-	                super.onContentsChanged();
-	                setChanged();
-	                level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
-	            }
-	        };
+	    	// Custom method for filling the output tanks
+		    public void fillOutput(FluidStack stack) {
+			    for (FluidTank tank : outputTanks) {
+				    int tankSpace = tank.getCapacity() - tank.getFluidAmount();
+				    if (stack.isEmpty()) {
+					    continue;
+				    }
+				    if (!tank.getFluid().isEmpty() && tank.getFluid().getFluid().isSame(stack.getFluid())) {
+					    int fillAmount = Math.min(stack.getAmount(), tankSpace);
+					    if (fillAmount > 0) {
+						    tank.fill(stack.copyWithAmount(fillAmount), IFluidHandler.FluidAction.EXECUTE);
+					    } else {
+						    continue;
+					    }
+				    }
+				    if (tank.isEmpty() && tank.isFluidValid(stack)) {
+					    tank.fill(stack.copyWithAmount(stack.getAmount()), IFluidHandler.FluidAction.EXECUTE);
+				    }
+			    }
+		    }
+	    };
 
-	        public FluidTank getFluidTank${tank.index}() {
-	            return fluidTank${tank.index};
-	        }
-	    </#list>
-	</#if>
+	    public IFluidHandler getFluidTank() {
+	        return fluidHandler;
+	    }
 
-	private final FluidTank[] fluidTanks = {
-	    fluidTank0
-	    <#if fluidTank != "">
+	    private final FluidTank fluidTank0 = new FluidTank(${data.fluidCapacity}
+		    <#if data.fluidRestrictions?has_content>
+		        , fs -> {
+		            <#list data.fluidRestrictions as fluidRestriction>
+                        if (fs.getFluid() == ${fluidRestriction}) return true;
+                    </#list>
+		            return false;
+		        }
+		    </#if>
+	    ) {
+		    @Override protected void onContentsChanged() {
+			    super.onContentsChanged();
+			    setChanged();
+			    level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
+		    }
+	    };
+
+        <#if fluidTank != "">
 	        <#list fluidTank.tanks as tank>
-	            , fluidTank${tank.index}
+	            private final FluidTank fluidTank${tank.index} = new FluidTank(${tank.size}
+	                <#if tank.fluidRestrictions?has_content>
+	                    , fs -> {
+	                        <#list tank.fluidRestrictions as restrict>
+	                            if(fs.getFluid() == ${restrict}) return true;
+	                        </#list>
+	                        return false;
+	                    }
+	                </#if>
+	            ) {
+	                @Override
+	                protected void onContentsChanged() {
+	                    super.onContentsChanged();
+	                    setChanged();
+	                    level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
+	                }
+	            };
 	        </#list>
 	    </#if>
-	};
 
+	    public FluidTank getFluidTank0() {
+		    return fluidTank0;
+	    }
+
+	    <#if fluidTank != "">
+	        <#list fluidTank.tanks as tank>
+	            public FluidTank getFluidTank${tank.index}() {
+	                return fluidTank${tank.index};
+	            }
+	        </#list>
+	    </#if>
+
+
+        // FtaO: Holds all fluid tanks + extra with individual type setting
+	    private final FluidTank[] fluidTanks = {
+	        fluidTank0
+	        <#if fluidTank != "">
+	            <#list fluidTank.tanks as tank>
+	                , fluidTank${tank.index}
+	            </#list>
+	        </#if>
+	    };
+
+	    private final FluidTank[] ioTanks = {
+	        <#assign ioTanks = []>
+
+	        <#if fluidTank.inteType == "DEFAULT">
+	            <#assign ioTanks += ["fluidTank0"]>
+	        </#if>
+	        <#list fluidTank.tanks as tank>
+	            <#if tank.type == "DEFAULT">
+	                <#assign ioTanks += ["fluidTank${tank.index}"]>
+	            </#if>
+	        </#list>
+
+	        ${ioTanks?join(",")}
+	    };
+
+	    private final FluidTank[] inputTanks = {
+	        <#assign ioTanks = []>
+
+	        <#if fluidTank.inteType == "INPUT">
+	            <#assign ioTanks += ["fluidTank0"]>
+	        </#if>
+	        <#list fluidTank.tanks as tank>
+	            <#if tank.type == "INPUT">
+	                <#assign ioTanks += ["fluidTank${tank.index}"]>
+	            </#if>
+	        </#list>
+
+	        ${ioTanks?join(",")}
+	    };
+
+	    private final FluidTank[] outputTanks = {
+	        <#assign ioTanks = []>
+
+	        <#if fluidTank.inteType == "OUTPUT">
+	            <#assign ioTanks += ["fluidTank0"]>
+	        </#if>
+	        <#list fluidTank.tanks as tank>
+	            <#if tank.type == "OUTPUT">
+	                <#assign ioTanks += ["fluidTank${tank.index}"]>
+	            </#if>
+	        </#list>
+
+	        ${ioTanks?join(",")}
+	    };
     </#if>
 
     <#if data.sensitiveToVibration>

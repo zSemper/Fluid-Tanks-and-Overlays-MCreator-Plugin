@@ -17,6 +17,7 @@ public class TankListEntry extends JSimpleListEntry<FluidTanks.TankListEntry> {
     private final JSpinner index = new JSpinner(new SpinnerNumberModel(1, 1, 100,1));
     private final JSpinner size = new JSpinner(new SpinnerNumberModel(8000, 1, 2147483647, 1));
     private FluidListField fluidRestrictions;
+    private final JComboBox<String> type = new JComboBox<>(new String[]{"DEFAULT", "INPUT", "OUTPUT"});
 
     private final Workspace workspace;
 
@@ -29,6 +30,7 @@ public class TankListEntry extends JSimpleListEntry<FluidTanks.TankListEntry> {
         index.setPreferredSize(Constants.SPINNER_DIMENSION);
         size.setPreferredSize(new Dimension(140, Constants.HEIGHT));
         fluidRestrictions.setPreferredSize(new Dimension(400, Constants.HEIGHT));
+        type.setPreferredSize(Constants.SPINNER_DIMENSION);
 
         this.line.add(HelpUtils.wrapWithHelpButton(gui.withEntry("fluid_tanks/tank_index"), L10N.label("elementGui.tankListEntry.tankIndex", Constants.NO_PARAMS)));
         this.line.add(index);
@@ -36,6 +38,8 @@ public class TankListEntry extends JSimpleListEntry<FluidTanks.TankListEntry> {
         this.line.add(size);
         this.line.add(HelpUtils.wrapWithHelpButton(gui.withEntry("fluid_tanks/tanks/fluid_restrictions"), L10N.label("elementGui.tankListEntry.fluidRestrictions", Constants.NO_PARAMS)));
         this.line.add(fluidRestrictions);
+        this.line.add(HelpUtils.wrapWithHelpButton(gui.withEntry("fluid_tanks/tanks/type"), L10N.label("elementGui.tankListEntry.tankType", Constants.NO_PARAMS)));
+        this.line.add(type);
     }
 
     public void reloadDataLists() {
@@ -47,6 +51,7 @@ public class TankListEntry extends JSimpleListEntry<FluidTanks.TankListEntry> {
         this.index.setEnabled(enabled);
         this.size.setEnabled(enabled);
         this.fluidRestrictions.setEnabled(enabled);
+        this.type.setEnabled(enabled);
     }
 
     @Override
@@ -57,6 +62,7 @@ public class TankListEntry extends JSimpleListEntry<FluidTanks.TankListEntry> {
         if(!fluidRestrictions.getListElements().isEmpty()) {
             entry.fluidRestrictions = fluidRestrictions.getListElements();
         }
+        entry.type = (String) type.getSelectedItem();
         return entry;
     }
 
@@ -65,5 +71,6 @@ public class TankListEntry extends JSimpleListEntry<FluidTanks.TankListEntry> {
         index.setValue(entry.index);
         size.setValue(entry.size);
         fluidRestrictions.setListElements(entry.fluidRestrictions);
+        type.setSelectedItem(entry.type);
     }
 }

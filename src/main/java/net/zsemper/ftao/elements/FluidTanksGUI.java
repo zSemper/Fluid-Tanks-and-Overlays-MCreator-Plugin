@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
     private final SearchableComboBox<String> block;
+    private final JComboBox<String> inteType;
     private TankList tanks;
     private SingleModElementSelector gui;
     private OverlayList overlays;
@@ -34,6 +35,7 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
         super(mcreator, modElement, editingMode);
 
         block = new SearchableComboBox<>();
+        inteType = new JComboBox<>(new String[]{"DEFAULT", "INPUT", "OUTPUT"});
         tanks = new TankList(mcreator, this);
         gui = new SingleModElementSelector(mcreator, ModElementType.GUI);
         overlays = new OverlayList(mcreator, this);
@@ -44,19 +46,25 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
 
     protected void initGUI() {
         JComponent blockName = L10N.label("elementGui.fluidTanks.block", Constants.NO_PARAMS);
+        JComponent inteTankType = L10N.label("elementGui.fluidTanks.tankType", Constants.NO_PARAMS);
         JComponent guiName = L10N.label("elementGui.fluidTanks.gui", Constants.NO_PARAMS);
 
         ComponentUtils.deriveFont(blockName, 16);
         ComponentUtils.deriveFont(block, 16);
+        ComponentUtils.deriveFont(inteTankType, 16);
+        ComponentUtils.deriveFont(inteType, 16);
         ComponentUtils.deriveFont(guiName, 16);
         ComponentUtils.deriveFont(gui, 16);
 
         block.setOpaque(false);
+        inteType.setOpaque(false);
         tanks.setOpaque(false);
         overlays.setOpaque(false);
 
         blockName.setPreferredSize(new Dimension(50, 40));
         block.setPreferredSize(new Dimension(200, 40));
+        inteTankType.setPreferredSize(new Dimension(150, 40));
+        inteType.setPreferredSize(new Dimension(200, 40));
         guiName.setPreferredSize(new Dimension(50, 40));
         gui.setPreferredSize(new Dimension(200, 40));
 
@@ -68,10 +76,13 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
         JPanel globalTanks = new JPanel(new BorderLayout());
         globalTanks.setOpaque(false);
 
-        JPanel mainTanks = new JPanel(new GridLayout(1, 2, 0, 2));
+        JPanel mainTanks = new JPanel(new GridLayout(1, 5, 0, 2));
         mainTanks.setOpaque(false);
         mainTanks.add(blockName);
         mainTanks.add(block);
+        mainTanks.add(new JEmptyBox(10, 40));
+        mainTanks.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid_tanks/tanks/type"), inteTankType));
+        mainTanks.add(inteType);
 
         JComponent tankPanel = PanelUtils.northAndCenterElement(HelpUtils.wrapWithHelpButton(this.withEntry("fluid_tanks/tanks"), L10N.label("elementGui.fluidTanks.tanks", Constants.NO_PARAMS)), this.tanks);
         tankPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -131,6 +142,7 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
     @Override
     protected void openInEditingMode(FluidTanks fluidTanks) {
         block.setSelectedItem(fluidTanks.block);
+        inteType.setSelectedItem(fluidTanks.inteType);
         tanks.setEntries(fluidTanks.tanks);
         gui.setEntry(fluidTanks.gui);
         overlays.setEntries(fluidTanks.overlays);
@@ -140,6 +152,7 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
     public FluidTanks getElementFromGUI() {
         FluidTanks fluidTanks = new FluidTanks(this.modElement);
         fluidTanks.block = block.getSelectedItem();
+        fluidTanks.inteType = (String) inteType.getSelectedItem();
         fluidTanks.tanks = tanks.getEntries();
         fluidTanks.gui = gui.getEntry();
         fluidTanks.overlays = overlays.getEntries();
