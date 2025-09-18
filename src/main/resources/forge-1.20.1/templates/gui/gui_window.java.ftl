@@ -295,7 +295,7 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> {
             ${fluidTank.block}BlockEntity blockEntity = (${fluidTank.block}BlockEntity) this.world.getBlockEntity(BlockPos.containing(x, y, z));
 
             <#list fluidTank.overlays as overlay>
-                addRenderableOnly(new FluidStackWidget(this, blockEntity.getFluidTank${overlay.index}(), this.leftPos + ${overlay.xPos}, this.topPos + ${overlay.yPos}, ${overlay.width}, ${overlay.height}));
+                addRenderableOnly(new ${package}.utils.FluidStackWidget(this, blockEntity.getFluidTank${overlay.index}(), this.leftPos + ${overlay.xPos}, this.topPos + ${overlay.yPos}, 16, ${overlay.height}));
             </#list>
         }
     </#if>

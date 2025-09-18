@@ -265,29 +265,9 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 	    		return FluidStack.EMPTY;
 	    	}
 
-	    	// Custom method for filling the output tanks
-		    public void fillOutput(FluidStack stack) {
-			    for (FluidTank tank : outputTanks) {
-				    int tankSpace = tank.getCapacity() - tank.getFluidAmount();
-				    if (stack.isEmpty()) {
-					    continue;
-				    }
-				    if (!tank.getFluid().isEmpty() && tank.getFluid().getFluid().isSame(stack.getFluid())) {
-					    int fillAmount = Math.min(stack.getAmount(), tankSpace);
-					    if (fillAmount > 0) {
-					        FluidStack fs = stack.copy();
-					        fs.setAmount(fillAmount);
-						    tank.fill(fs, IFluidHandler.FluidAction.EXECUTE);
-					    } else {
-						    continue;
-					    }
-				    }
-				    if (tank.isEmpty() && tank.isFluidValid(stack)) {
-				        FluidStack fs = stack.copy();
-				        fs.setAmount(stack.getAmount());
-					    tank.fill(fs, IFluidHandler.FluidAction.EXECUTE);
-				    }
-			    }
+	    	// FTaO
+		    public FluidTank getTank(int index) {
+			    return fluidTanks[index];
 		    }
 	    };
 
@@ -307,11 +287,18 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 	    		setChanged();
 	    		level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
             }
+
+		    @Override
+		    public void setFluid(FluidStack stack) {
+			    super.setFluid(stack);
+			    setChanged();
+			    level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
+		    }
         };
 
         <#if fluidTank != "">
 	        <#list fluidTank.tanks as tank>
-	            private final FluidTank fluidTank${tank.index} = new FluidTank(${tank.size}
+	            private final FluidTank fluidTank${tank?index + 1} = new FluidTank(${tank.size}
 	                <#if tank.fluidRestrictions?has_content>
 	                    , fs -> {
 	                        <#list tank.fluidRestrictions as restrict>
@@ -327,6 +314,13 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 	                    setChanged();
 	                    level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
 	                }
+
+		            @Override
+		            public void setFluid(FluidStack stack) {
+			            super.setFluid(stack);
+			            setChanged();
+			            level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
+		            }
 	            };
 	        </#list>
 	    </#if>
@@ -337,8 +331,8 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 
 	    <#if fluidTank != "">
 	        <#list fluidTank.tanks as tank>
-	            public FluidTank getFluidTank${tank.index}() {
-	                return fluidTank${tank.index};
+	            public FluidTank getFluidTank${tank?index + 1}() {
+	                return fluidTank${tank?index + 1};
 	            }
 	        </#list>
 	    </#if>
@@ -348,54 +342,60 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 	        fluidTank0
 	        <#if fluidTank != "">
 	            <#list fluidTank.tanks as tank>
-	                , fluidTank${tank.index}
+	                , fluidTank${tank?index + 1}
 	            </#list>
 	        </#if>
 	    };
 
 	    private final FluidTank[] ioTanks = {
-	        <#assign ioTanks = []>
+	        <#if fluidTank != "">
+	            <#assign ioTanks = []>
 
-	        <#if fluidTank.inteType == "DEFAULT">
-	            <#assign ioTanks += ["fluidTank0"]>
-	        </#if>
-	        <#list fluidTank.tanks as tank>
-	            <#if tank.type == "DEFAULT">
-	                <#assign ioTanks += ["fluidTank${tank.index}"]>
+	            <#if fluidTank.inteType == "Default">
+	                <#assign ioTanks += ["fluidTank0"]>
 	            </#if>
-	        </#list>
+	            <#list fluidTank.tanks as tank>
+	                <#if tank.type == "Default">
+	                    <#assign ioTanks += ["fluidTank${tank?index + 1}"]>
+	                </#if>
+	            </#list>
 
-	        ${ioTanks?join(",")}
+	            ${ioTanks?join(",")}
+	        </#if>
 	    };
 
 	    private final FluidTank[] inputTanks = {
-	        <#assign ioTanks = []>
+	        <#if fluidTank != "">
+	            <#assign ioTanks = []>
 
-	        <#if fluidTank.inteType == "INPUT">
-	            <#assign ioTanks += ["fluidTank0"]>
-	        </#if>
-	        <#list fluidTank.tanks as tank>
-	            <#if tank.type == "INPUT">
-	                <#assign ioTanks += ["fluidTank${tank.index}"]>
+	            <#if fluidTank.inteType == "Input">
+	                <#assign ioTanks += ["fluidTank0"]>
 	            </#if>
-	        </#list>
+	            <#list fluidTank.tanks as tank>
+	                <#if tank.type == "Input">
+	                    <#assign ioTanks += ["fluidTank${tank?index + 1}"]>
+	                </#if>
+	            </#list>
 
-	        ${ioTanks?join(",")}
+	            ${ioTanks?join(",")}
+	        </#if>
 	    };
 
 	    private final FluidTank[] outputTanks = {
-	        <#assign ioTanks = []>
+	        <#if fluidTanks != "">
+	            <#assign ioTanks = []>
 
-	        <#if fluidTank.inteType == "OUTPUT">
-	            <#assign ioTanks += ["fluidTank0"]>
-	        </#if>
-	        <#list fluidTank.tanks as tank>
-	            <#if tank.type == "OUTPUT">
-	                <#assign ioTanks += ["fluidTank${tank.index}"]>
+	            <#if fluidTank.inteType == "Output">
+	                <#assign ioTanks += ["fluidTank0"]>
 	            </#if>
-	        </#list>
+	            <#list fluidTank.tanks as tank>
+	                <#if tank.type == "Output">
+	                    <#assign ioTanks += ["fluidTank${tank?index + 1}"]>
+	                </#if>
+	            </#list>
 
-	        ${ioTanks?join(",")}
+	            ${ioTanks?join(",")}
+	        </#if>
 	    };
     </#if>
 

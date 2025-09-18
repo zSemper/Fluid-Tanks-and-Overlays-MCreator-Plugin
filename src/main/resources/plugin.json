@@ -1,15 +1,13 @@
 {
-  "id": "template",
+  "id": "ftao",
   "supportedversions": [
-    2024004,
-    2025001,
-    2025002
+    2024004
   ],
   "weight": 30,
   "javaplugin": "net.zsemper.ftao.ModPlugin",
   "info": {
     "name": "Fluid Tanks and Overlays",
-    "version": "1.1",
+    "version": "1.2.1",
     "description": "Give blocks multiple tanks and Fluid Tank Overlays in GUIs",
     "author": "zSemper"
   }

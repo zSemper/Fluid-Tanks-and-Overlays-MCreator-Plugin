@@ -2,29 +2,29 @@
  # MCreator (https://mcreator.net/)
  # Copyright (C) 2012-2020, Pylo
  # Copyright (C) 2020-2023, Pylo, opensource contributors
- # 
+ #
  # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
  # the Free Software Foundation, either version 3 of the License, or
  # (at your option) any later version.
- # 
+ #
  # This program is distributed in the hope that it will be useful,
  # but WITHOUT ANY WARRANTY; without even the implied warranty of
  # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  # GNU General Public License for more details.
- # 
+ #
  # You should have received a copy of the GNU General Public License
  # along with this program.  If not, see <https://www.gnu.org/licenses/>.
- # 
+ #
  # Additional permission for code generator templates (*.ftl files)
- # 
- # As a special exception, you may create a larger work that contains part or 
- # all of the MCreator code generator templates (*.ftl files) and distribute 
- # that work under terms of your choice, so long as that work isn't itself a 
- # template for code generation. Alternatively, if you modify or redistribute 
- # the template itself, you may (at your option) remove this special exception, 
- # which will cause the template and the resulting code generator output files 
- # to be licensed under the GNU General Public License without this special 
+ #
+ # As a special exception, you may create a larger work that contains part or
+ # all of the MCreator code generator templates (*.ftl files) and distribute
+ # that work under terms of your choice, so long as that work isn't itself a
+ # template for code generation. Alternatively, if you modify or redistribute
+ # the template itself, you may (at your option) remove this special exception,
+ # which will cause the template and the resulting code generator output files
+ # to be licensed under the GNU General Public License without this special
  # exception.
 -->
 
@@ -36,34 +36,29 @@
 
 package ${package}.client.gui;
 
-<#assign textFields = data.getComponentsOfType("TextField")>
-<#assign checkboxes = data.getComponentsOfType("Checkbox")>
-<#assign buttons = data.getComponentsOfType("Button")>
-<#assign imageButtons = data.getComponentsOfType("ImageButton")>
-<#assign tooltips = data.getComponentsOfType("Tooltip")>
+<#assign hasEntityModels = false>
 
-<#compress>
-public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implements ${JavaModName}Screens.ScreenAccessor {
+public class ${name}Screen extends AbstractContainerScreen<${name}Menu> {
+
+	private final static HashMap<String, Object> guistate = ${name}Menu.guistate;
 
 	private final Level world;
 	private final int x, y, z;
 	private final Player entity;
 
-	private boolean menuStateUpdateActive = false;
-
-	<#list textFields as component>
+	<#list data.getComponentsOfType("TextField") as component>
 	EditBox ${component.getName()};
 	</#list>
 
-	<#list checkboxes as component>
+	<#list data.getComponentsOfType("Checkbox") as component>
 	Checkbox ${component.getName()};
 	</#list>
 
-	<#list buttons as component>
+	<#list data.getComponentsOfType("Button") as component>
 	Button ${component.getName()};
 	</#list>
 
-	<#list imageButtons as component>
+	<#list data.getComponentsOfType("ImageButton") as component>
 	ImageButton ${component.getName()};
 	</#list>
 
@@ -78,23 +73,6 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
 		this.imageHeight = ${data.height};
 	}
 
-	@Override public void updateMenuState(int elementType, String name, Object elementState) {
-		menuStateUpdateActive = true;
-
-		<#if textFields?has_content>
-		if (elementType == 0 && elementState instanceof String stringState) {
-			<#list textFields as component>
-				<#if !component?is_first>else</#if> if (name.equals("${component.getName()}"))
-					${component.getName()}.setValue(stringState);
-			</#list>
-		}
-		</#if>
-
-		<#-- updateMenuState is not implemented for checkboxes, as there is no procedure block to set checkbox state currently -->
-
-		menuStateUpdateActive = false;
-	}
-
 	<#if data.doesPauseGame>
 	@Override public boolean isPauseScreen() {
 		return true;
@@ -106,14 +84,16 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
 	</#if>
 
 	@Override public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
+
 		super.render(guiGraphics, mouseX, mouseY, partialTicks);
 
-		<#list textFields as component>
+		<#list data.getComponentsOfType("TextField") as component>
 		${component.getName()}.render(guiGraphics, mouseX, mouseY, partialTicks);
 		</#list>
 
-		<#compress>
 		<#list data.getComponentsOfType("EntityModel") as component>
+			<#assign hasEntityModels = true>
 			<#assign followMouse = component.followMouseMovement>
 			<#assign x = component.gx(data.width)>
 			<#assign y = component.gy(data.height)>
@@ -121,42 +101,28 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
 				<#if hasProcedure(component.displayCondition)>
 					if (<@procedureOBJToConditionCode component.displayCondition/>)
 				</#if>
-				${JavaModName}Screens.renderEntityInInventoryFollowsAngle(guiGraphics, this.leftPos + ${x + 10}, this.topPos + ${y + 20}, ${component.scale},
+				this.renderEntityInInventoryFollowsAngle(guiGraphics, this.leftPos + ${x + 10}, this.topPos + ${y + 20}, ${component.scale},
 					${component.rotationX / 20.0}f <#if followMouse> + (float) Math.atan((this.leftPos + ${x + 10} - mouseX) / 40.0)</#if>,
-					<#if followMouse>(float) Math.atan((this.topPos + ${y + 21 - 50} - mouseY) / 40.0)<#else>0</#if>, livingEntity);
+					<#if followMouse>(float) Math.atan((this.topPos + ${y + 21 - 50} - mouseY) / 40.0)<#else>0</#if>,
+					livingEntity
+				);
 			}
 		</#list>
-		</#compress>
 
-		<#if tooltips?has_content>
-		boolean customTooltipShown = false;
-		</#if>
-		<#list tooltips as component>
+		this.renderTooltip(guiGraphics, mouseX, mouseY);
+
+		<#list data.getComponentsOfType("Tooltip") as component>
 			<#assign x = component.gx(data.width)>
 			<#assign y = component.gy(data.height)>
 			<#if hasProcedure(component.displayCondition)>
 				if (<@procedureOBJToConditionCode component.displayCondition/>)
 			</#if>
-				if (mouseX > leftPos + ${x} && mouseX < leftPos + ${x + component.width} && mouseY > topPos + ${y} && mouseY < topPos + ${y + component.height}) {
-					<#if hasProcedure(component.text)>
-					String hoverText = <@procedureOBJToStringCode component.text/>;
-					if (hoverText != null) {
-						guiGraphics.renderComponentTooltip(font, Arrays.stream(hoverText.split("\n")).map(Component::literal).collect(Collectors.toList()), mouseX, mouseY);
-					}
-					<#else>
-						guiGraphics.renderTooltip(font, Component.translatable("gui.${modid}.${registryname}.${component.getName()}"), mouseX, mouseY);
-					</#if>
-					customTooltipShown = true;
-				}
+				if (mouseX > leftPos + ${x} && mouseX < leftPos + ${x + component.width} && mouseY > topPos + ${y} && mouseY < topPos + ${y + component.height})
+					guiGraphics.renderTooltip(font, <#if hasProcedure(component.text)>Component.literal(<@procedureOBJToStringCode component.text/>)<#else>Component.translatable("gui.${modid}.${registryname}.${component.getName()}")</#if>, mouseX, mouseY);
 		</#list>
-
-		<#if tooltips?has_content>
-		if (!customTooltipShown)
-		</#if>
-		this.renderTooltip(guiGraphics, mouseX, mouseY);
 	}
 
-	@Override protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+	@Override protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int gx, int gy) {
 		RenderSystem.setShaderColor(1, 1, 1, 1);
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
@@ -197,7 +163,7 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
 			return true;
 		}
 
-		<#list textFields as component>
+		<#list data.getComponentsOfType("TextField") as component>
 			if(${component.getName()}.isFocused())
 				return ${component.getName()}.keyPressed(key, b, c);
 		</#list>
@@ -205,13 +171,13 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
 		return super.keyPressed(key, b, c);
 	}
 
-	<#if textFields?has_content>
+	<#if data.getComponentsOfType("TextField")?has_content>
 	@Override public void resize(Minecraft minecraft, int width, int height) {
-		<#list textFields as component>
+		<#list data.getComponentsOfType("TextField") as component>
 		String ${component.getName()}Value = ${component.getName()}.getValue();
 		</#list>
 		super.resize(minecraft, width, height);
-		<#list textFields as component>
+		<#list data.getComponentsOfType("TextField") as component>
 		${component.getName()}.setValue(${component.getName()}Value);
 		</#list>
 	}
@@ -231,42 +197,65 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
 	@Override public void init() {
 		super.init();
 
-		<#list textFields as component>
+		<#list data.getComponentsOfType("TextField") as component>
 			${component.getName()} = new EditBox(this.font, this.leftPos + ${component.gx(data.width) + 1}, this.topPos + ${component.gy(data.height) + 1},
-			${component.width - 2}, ${component.height - 2}, Component.translatable("gui.${modid}.${registryname}.${component.getName()}"));
-			${component.getName()}.setMaxLength(8192);
-			${component.getName()}.setResponder(content -> {
-				if (!menuStateUpdateActive)
-					menu.sendMenuStateUpdate(entity, 0, "${component.getName()}", content, false);
-			});
+			${component.width - 2}, ${component.height - 2}, Component.translatable("gui.${modid}.${registryname}.${component.getName()}"))
 			<#if component.placeholder?has_content>
-			${component.getName()}.setHint(Component.translatable("gui.${modid}.${registryname}.${component.getName()}"));
+			{
+				@Override public void insertText(String text) {
+					super.insertText(text);
+					if (getValue().isEmpty())
+						setSuggestion(Component.translatable("gui.${modid}.${registryname}.${component.getName()}").getString());
+					else
+						setSuggestion(null);
+				}
+
+				@Override public void moveCursorTo(int pos, boolean flag) {
+					super.moveCursorTo(pos, flag);
+					if (getValue().isEmpty())
+						setSuggestion(Component.translatable("gui.${modid}.${registryname}.${component.getName()}").getString());
+					else
+						setSuggestion(null);
+				}
+			}
+			</#if>;
+			${component.getName()}.setMaxLength(32767);
+			<#if component.placeholder?has_content>
+			${component.getName()}.setSuggestion(Component.translatable("gui.${modid}.${registryname}.${component.getName()}").getString());
 			</#if>
 
+			guistate.put("text:${component.getName()}", ${component.getName()});
 			this.addWidget(this.${component.getName()});
 		</#list>
 
 		<#assign btid = 0>
 
-		<#list buttons as component>
+		<#list data.getComponentsOfType("Button") as component>
 			<#if component.isUndecorated>
 				${component.getName()} = new PlainTextButton(
 					this.leftPos + ${component.gx(data.width)}, this.topPos + ${component.gy(data.height)},
 					${component.width}, ${component.height},
 					Component.translatable("gui.${modid}.${registryname}.${component.getName()}"),
-					<@buttonOnClick component/>, this.font);
+					<@buttonOnClick component/>, this.font
+				)<@buttonDisplayCondition component/>;
 			<#else>
 				${component.getName()} = Button.builder(Component.translatable("gui.${modid}.${registryname}.${component.getName()}"), <@buttonOnClick component/>)
 					.bounds(this.leftPos + ${component.gx(data.width)}, this.topPos + ${component.gy(data.height)},
-					${component.width}, ${component.height}).build();
+					${component.width}, ${component.height})
+					<#if hasProcedure(component.displayCondition)>
+						.build(builder -> new Button(builder)<@buttonDisplayCondition component/>);
+					<#else>
+						.build();
+					</#if>
 			</#if>
 
+			guistate.put("button:${component.getName()}", ${component.getName()});
 			this.addRenderableWidget(${component.getName()});
 
 			<#assign btid +=1>
 		</#list>
 
-		<#list imageButtons as component>
+		<#list data.getComponentsOfType("ImageButton") as component>
 			${component.getName()} = new ImageButton(
 				this.leftPos + ${component.gx(data.width)}, this.topPos + ${component.gy(data.height)},
 				${component.getWidth(w.getWorkspace())}, ${component.getHeight(w.getWorkspace())},
@@ -285,43 +274,48 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
 				}
 			};
 
+			guistate.put("button:${component.getName()}", ${component.getName()});
 			this.addRenderableWidget(${component.getName()});
 
 			<#assign btid +=1>
 		</#list>
 
-		<#list checkboxes as component>
-			<#if hasProcedure(component.isCheckedProcedure)>boolean ${component.getName()}Selected = <@procedureOBJToConditionCode component.isCheckedProcedure/>;</#if>
+		<#list data.getComponentsOfType("Checkbox") as component>
 			${component.getName()} = Checkbox.builder(Component.translatable("gui.${modid}.${registryname}.${component.getName()}"), this.font)
 				.pos(this.leftPos + ${component.gx(data.width)}, this.topPos + ${component.gy(data.height)})
-				.onValueChange((checkbox, value) -> {
-					if (!menuStateUpdateActive)
-						menu.sendMenuStateUpdate(entity, 1, "${component.getName()}", value, false);
-				})
-				<#if hasProcedure(component.isCheckedProcedure)>.selected(${component.getName()}Selected)</#if>
+				<#if hasProcedure(component.isCheckedProcedure)>.selected(<@procedureOBJToConditionCode component.isCheckedProcedure/>)</#if>
 				.build();
-			<#if hasProcedure(component.isCheckedProcedure)>
-				if (${component.getName()}Selected)
-					menu.sendMenuStateUpdate(entity, 1, "${component.getName()}", true, false);
-			</#if>
 
+			guistate.put("checkbox:${component.getName()}", ${component.getName()});
 			this.addRenderableWidget(${component.getName()});
 		</#list>
 
-        <#if fluidTank != "">
-		    this.addFluidWidget();
-		</#if>
+		<#if fluidTank != "">
+            this.addFluidWidget();
+        </#if>
 	}
 
-	<#if data.getComponentsOfType("Button")?filter(component -> hasProcedure(component.displayCondition))?size != 0>
-	@Override protected void containerTick() {
-		super.containerTick();
-
-		<#list data.getComponentsOfType("Button") as component>
-			<#if hasProcedure(component.displayCondition)>
-				this.${component.getName()}.visible = <@procedureOBJToConditionCode component.displayCondition/>;
-			</#if>
-		</#list>
+	<#if hasEntityModels>
+	private void renderEntityInInventoryFollowsAngle(GuiGraphics guiGraphics, int x, int y, int scale, float angleXComponent, float angleYComponent, LivingEntity entity) {
+		Quaternionf pose = new Quaternionf().rotateZ((float)Math.PI);
+		Quaternionf cameraOrientation = new Quaternionf().rotateX(angleYComponent * 20 * ((float) Math.PI / 180F));
+		pose.mul(cameraOrientation);
+		float f2 = entity.yBodyRot;
+		float f3 = entity.getYRot();
+		float f4 = entity.getXRot();
+		float f5 = entity.yHeadRotO;
+		float f6 = entity.yHeadRot;
+		entity.yBodyRot = 180.0F + angleXComponent * 20.0F;
+		entity.setYRot(180.0F + angleXComponent * 40.0F);
+		entity.setXRot(-angleYComponent * 20.0F);
+		entity.yHeadRot = entity.getYRot();
+		entity.yHeadRotO = entity.getYRot();
+		InventoryScreen.renderEntityInInventory(guiGraphics, x, y, scale, new Vector3f(0, 0, 0), pose, cameraOrientation, entity);
+		entity.yBodyRot = f2;
+		entity.setYRot(f3);
+		entity.setXRot(f4);
+		entity.yHeadRotO = f5;
+		entity.yHeadRot = f6;
 	}
 	</#if>
 
@@ -330,24 +324,32 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
             ${fluidTank.block}BlockEntity blockEntity = (${fluidTank.block}BlockEntity) this.world.getBlockEntity(BlockPos.containing(x, y, z));
 
             <#list fluidTank.overlays as overlay>
-                addRenderableOnly(new FluidStackWidget(this, blockEntity.getFluidTank${overlay.index}(), this.leftPos + ${overlay.xPos}, this.topPos + ${overlay.yPos}, ${overlay.width}, ${overlay.height}));
+                addRenderableOnly(new ${package}.utils.FluidStackWidget(this, blockEntity.getFluidTank${overlay.index}(), this.leftPos + ${overlay.xPos}, this.topPos + ${overlay.yPos}, 16, ${overlay.height}));
             </#list>
         }
     </#if>
 }
-</#compress>
 
 <#macro buttonOnClick component>
 e -> {
 	<#if hasProcedure(component.onClick)>
-		int x = ${name}Screen.this.x; <#-- #5582 - x and y provided by buttons are in-GUI, not in-world coordinates -->
-		int y = ${name}Screen.this.y;
 		if (<@procedureOBJToConditionCode component.displayCondition/>) {
 			PacketDistributor.sendToServer(new ${name}ButtonMessage(${btid}, x, y, z));
 			${name}ButtonMessage.handleButtonAction(entity, ${btid}, x, y, z);
 		}
 	</#if>
 }
+</#macro>
+
+<#macro buttonDisplayCondition component>
+<#if hasProcedure(component.displayCondition)>
+{
+	@Override public void renderWidget(GuiGraphics guiGraphics, int gx, int gy, float ticks) {
+		this.visible = <@procedureOBJToConditionCode component.displayCondition/>;
+		super.renderWidget(guiGraphics, gx, gy, ticks);
+	}
+}
+</#if>
 </#macro>
 
 <#macro getSpriteByIndex component dim>

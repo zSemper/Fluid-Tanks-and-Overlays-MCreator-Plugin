@@ -28,34 +28,21 @@
  # exception.
 -->
 
-<#-- @formatter:off -->
-<#include "../procedures.java.ftl">
-
 <#assign tanks = w.hasElementsOfType("fluid_tanks")?then(w.getGElementsOfType("fluid_tanks")?filter(tanks -> tanks.block == name), "")>
 <#assign fluidTank = tanks?has_content?then(tanks[0], "")>
 
+<#-- @formatter:off -->
 package ${package}.block.entity;
 
 <#compress>
-public class ${name}BlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer
- 		<#if data.sensitiveToVibration>, GameEventListener.Provider<VibrationSystem.Listener>, VibrationSystem</#if> {
+public class ${name}BlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer {
 
-	private NonNullList<ItemStack> stacks = NonNullList.withSize(${data.inventorySize}, ItemStack.EMPTY);
+	private NonNullList<ItemStack> stacks = NonNullList.<ItemStack>withSize(${data.inventorySize}, ItemStack.EMPTY);
 
-	<#if data.sensitiveToVibration>
-	private final VibrationSystem.Listener vibrationListener = new VibrationSystem.Listener(this);
-	private final VibrationSystem.User vibrationUser = new VibrationUser(this.getBlockPos());
-	private VibrationSystem.Data vibrationData = new VibrationSystem.Data();
-	</#if>
-
-	<#if data.renderType() == 4>
-		<#list data.animations as animation>
-		public final AnimationState animationState${animation?index} = new AnimationState();
-		</#list>
-	</#if>
+	private final SidedInvWrapper handler = new SidedInvWrapper(this, null);
 
 	public ${name}BlockEntity(BlockPos position, BlockState state) {
-		super(${JavaModName}BlockEntities.${REGISTRYNAME}.get(), position, state);
+		super(${JavaModName}BlockEntities.${data.getModElement().getRegistryNameUpper()}.get(), position, state);
 	}
 
 	@Override public void loadAdditional(CompoundTag compound, HolderLookup.Provider lookupProvider) {
@@ -80,14 +67,6 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 		        fluidTank0.readFromNBT(lookupProvider, compound.getCompound("fluidTank0"));
 		    </#if>
 		</#if>
-
-		<#if data.sensitiveToVibration>
-		if (compound.contains("listener", 10)) {
-			VibrationSystem.Data.CODEC.parse(lookupProvider.createSerializationContext(NbtOps.INSTANCE), compound.getCompound("listener"))
-					.resultOrPartial(e -> ${JavaModName}.LOGGER.error("Failed to parse vibration listener for ${data.name}: '{}'", e))
-					.ifPresent(data -> this.vibrationData = data);
-		}
-		</#if>
 	}
 
 	@Override public void saveAdditional(CompoundTag compound, HolderLookup.Provider lookupProvider) {
@@ -109,12 +88,6 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 		    <#else>
 		        compound.put("fluidTank0", fluidTank0.writeToNBT(lookupProvider, new CompoundTag()));
             </#if>
-		</#if>
-
-		<#if data.sensitiveToVibration>
-		VibrationSystem.Data.CODEC.encodeStart(lookupProvider.createSerializationContext(NbtOps.INSTANCE), this.vibrationData)
-				.resultOrPartial(e -> ${JavaModName}.LOGGER.error("Failed to encode vibration listener for ${data.name}: '{}'", e))
-				.ifPresent(listener -> compound.put("listener", listener));
 		</#if>
 	}
 
@@ -141,11 +114,9 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 		return Component.literal("${registryname}");
 	}
 
-	<#if data.inventoryStackSize != 99>
 	@Override public int getMaxStackSize() {
 		return ${data.inventoryStackSize};
 	}
-	</#if>
 
 	@Override public AbstractContainerMenu createMenu(int id, Inventory inventory) {
 		<#if !data.guiBoundTo?has_content>
@@ -180,33 +151,22 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 		return IntStream.range(0, this.getContainerSize()).toArray();
 	}
 
-	@Override public boolean canPlaceItemThroughFace(int index, ItemStack itemstack, @Nullable Direction direction) {
-		return this.canPlaceItem(index, itemstack)
-		<#if hasProcedure(data.inventoryAutomationPlaceCondition)>&&
-			<@procedureCode data.inventoryAutomationPlaceCondition, {
-				"index": "index",
-				"itemstack": "itemstack",
-				"direction": "direction"
-			}, false/>
-		</#if>;
+	@Override public boolean canPlaceItemThroughFace(int index, ItemStack stack, @Nullable Direction direction) {
+		return this.canPlaceItem(index, stack);
 	}
 
-	@Override public boolean canTakeItemThroughFace(int index, ItemStack itemstack, Direction direction) {
+	@Override public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
 		<#list data.inventoryInSlotIDs as id>
 		if (index == ${id})
 			return false;
-		</#list>
-		<#if hasProcedure(data.inventoryAutomationTakeCondition)>
-			return <@procedureCode data.inventoryAutomationTakeCondition, {
-				"index": "index",
-				"itemstack": "itemstack",
-				"direction": "direction"
-			}, false/>;
-		<#else>
-			return true;
-		</#if>
+        </#list>
+		return true;
 	}
 	<#-- END: WorldlyContainer -->
+
+	public SidedInvWrapper getItemHandler() {
+		return handler;
+	}
 
 	<#if data.hasEnergyStorage>
 	private final EnergyStorage energyStorage = new EnergyStorage(${data.energyCapacity}, ${data.energyMaxReceive}, ${data.energyMaxExtract}, ${data.energyInitial}) {
@@ -308,25 +268,9 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 			    return FluidStack.EMPTY;
 		    }
 
-	    	// Custom method for filling the output tanks
-		    public void fillOutput(FluidStack stack) {
-			    for (FluidTank tank : outputTanks) {
-				    int tankSpace = tank.getCapacity() - tank.getFluidAmount();
-				    if (stack.isEmpty()) {
-					    continue;
-				    }
-				    if (!tank.getFluid().isEmpty() && tank.getFluid().getFluid().isSame(stack.getFluid())) {
-					    int fillAmount = Math.min(stack.getAmount(), tankSpace);
-					    if (fillAmount > 0) {
-						    tank.fill(stack.copyWithAmount(fillAmount), IFluidHandler.FluidAction.EXECUTE);
-					    } else {
-						    continue;
-					    }
-				    }
-				    if (tank.isEmpty() && tank.isFluidValid(stack)) {
-					    tank.fill(stack.copyWithAmount(stack.getAmount()), IFluidHandler.FluidAction.EXECUTE);
-				    }
-			    }
+	    	// FTaO
+		    public FluidTank getTank(int index) {
+			    return fluidTanks[index];
 		    }
 	    };
 
@@ -350,11 +294,18 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 			    setChanged();
 			    level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
 		    }
+
+		    @Override
+		    public void setFluid(FluidStack stack) {
+			    super.setFluid(stack);
+			    setChanged();
+			    level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
+		    }
 	    };
 
         <#if fluidTank != "">
 	        <#list fluidTank.tanks as tank>
-	            private final FluidTank fluidTank${tank.index} = new FluidTank(${tank.size}
+	            private final FluidTank fluidTank${tank?index + 1} = new FluidTank(${tank.size}
 	                <#if tank.fluidRestrictions?has_content>
 	                    , fs -> {
 	                        <#list tank.fluidRestrictions as restrict>
@@ -370,6 +321,13 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 	                    setChanged();
 	                    level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
 	                }
+
+		            @Override
+		            public void setFluid(FluidStack stack) {
+			            super.setFluid(stack);
+			            setChanged();
+			            level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
+		            }
 	            };
 	        </#list>
 	    </#if>
@@ -380,8 +338,8 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 
 	    <#if fluidTank != "">
 	        <#list fluidTank.tanks as tank>
-	            public FluidTank getFluidTank${tank.index}() {
-	                return fluidTank${tank.index};
+	            public FluidTank getFluidTank${tank?index + 1}() {
+	                return fluidTank${tank?index + 1};
 	            }
 	        </#list>
 	    </#if>
@@ -391,148 +349,64 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 	        fluidTank0
 	        <#if fluidTank != "">
 	            <#list fluidTank.tanks as tank>
-	                , fluidTank${tank.index}
+	                , fluidTank${tank?index + 1}
 	            </#list>
 	        </#if>
 	    };
 
+
 	    private final FluidTank[] ioTanks = {
-	        <#assign ioTanks = []>
+	        <#if fluidTank != "">
+	            <#assign ioTanks = []>
 
-	        <#if fluidTank.inteType == "DEFAULT">
-	            <#assign ioTanks += ["fluidTank0"]>
-	        </#if>
-	        <#list fluidTank.tanks as tank>
-	            <#if tank.type == "DEFAULT">
-	                <#assign ioTanks += ["fluidTank${tank.index}"]>
+	            <#if fluidTank.inteType == "Default">
+	                <#assign ioTanks += ["fluidTank0"]>
 	            </#if>
-	        </#list>
+	            <#list fluidTank.tanks as tank>
+	                <#if tank.type == "Default">
+	                    <#assign ioTanks += ["fluidTank${tank?index + 1}"]>
+	                </#if>
+	            </#list>
 
-	        ${ioTanks?join(",")}
+	            ${ioTanks?join(",")}
+	        </#if>
 	    };
 
 	    private final FluidTank[] inputTanks = {
-	        <#assign ioTanks = []>
+	        <#if fluidTank != "">
+	            <#assign ioTanks = []>
 
-	        <#if fluidTank.inteType == "INPUT">
-	            <#assign ioTanks += ["fluidTank0"]>
-	        </#if>
-	        <#list fluidTank.tanks as tank>
-	            <#if tank.type == "INPUT">
-	                <#assign ioTanks += ["fluidTank${tank.index}"]>
+	            <#if fluidTank.inteType == "Input">
+	                <#assign ioTanks += ["fluidTank0"]>
 	            </#if>
-	        </#list>
+	            <#list fluidTank.tanks as tank>
+	                <#if tank.type == "Input">
+	                    <#assign ioTanks += ["fluidTank${tank?index + 1}"]>
+	                </#if>
+	            </#list>
 
-	        ${ioTanks?join(",")}
+	            ${ioTanks?join(",")}
+	        </#if>
 	    };
 
 	    private final FluidTank[] outputTanks = {
-	        <#assign ioTanks = []>
+	        <#if fluidTank != "">
+	            <#assign ioTanks = []>
 
-	        <#if fluidTank.inteType == "OUTPUT">
-	            <#assign ioTanks += ["fluidTank0"]>
-	        </#if>
-	        <#list fluidTank.tanks as tank>
-	            <#if tank.type == "OUTPUT">
-	                <#assign ioTanks += ["fluidTank${tank.index}"]>
+	            <#if fluidTank.inteType == "Output">
+	                <#assign ioTanks += ["fluidTank0"]>
 	            </#if>
-	        </#list>
+	            <#list fluidTank.tanks as tank>
+	                <#if tank.type == "Output">
+	                    <#assign ioTanks += ["fluidTank${tank?index + 1}"]>
+	                </#if>
+	            </#list>
 
-	        ${ioTanks?join(",")}
+	            ${ioTanks?join(",")}
+	        </#if>
 	    };
     </#if>
 
-    <#if data.sensitiveToVibration>
-    @Override public VibrationSystem.Data getVibrationData() {
-    	return this.vibrationData;
-    }
-
-    @Override public VibrationSystem.User getVibrationUser() {
-    	return this.vibrationUser;
-    }
-
-    @Override public VibrationSystem.Listener getListener() {
-    	return this.vibrationListener;
-    }
-
-	private class VibrationUser implements VibrationSystem.User {
-
-		private final int x;
-		private final int y;
-		private final int z;
-		private final PositionSource positionSource;
-
-		public VibrationUser(BlockPos blockPos) {
-			this.x = blockPos.getX();
-			this.y = blockPos.getY();
-			this.z = blockPos.getZ();
-			this.positionSource = new BlockPositionSource(blockPos);
-		}
-
-		@Override public PositionSource getPositionSource() {
-			return this.positionSource;
-		}
-
-		<#if data.vibrationalEvents?has_content>
-		@Override public TagKey<GameEvent> getListenableEvents() {
-			return TagKey.create(Registries.GAME_EVENT, ResourceLocation.withDefaultNamespace("${data.getModElement().getRegistryName()}_can_listen"));
-		}
-		</#if>
-
-		@Override public int getListenerRadius() {
-			<#if hasProcedure(data.vibrationSensitivityRadius)>
-				Level world = ${name}BlockEntity.this.getLevel();
-				BlockState blockstate = ${name}BlockEntity.this.getBlockState();
-				return (int) <@procedureOBJToNumberCode data.vibrationSensitivityRadius/>;
-			<#else>
-				return ${data.vibrationSensitivityRadius.getFixedValue()};
-			</#if>
-		}
-
-		@Override public boolean canReceiveVibration(ServerLevel world, BlockPos vibrationPos, Holder<GameEvent> holder, GameEvent.Context context) {
-			<#if hasProcedure(data.canReceiveVibrationCondition)>
-				return <@procedureCode data.canReceiveVibrationCondition {
-					"x": "x",
-					"y": "y",
-					"z": "z",
-					"vibrationX": "vibrationPos.getX()",
-					"vibrationY": "vibrationPos.getY()",
-					"vibrationZ": "vibrationPos.getZ()",
-					"world": "world",
-					"entity": "context.sourceEntity()",
-					"blockstate": "${name}BlockEntity.this.getBlockState()"
-				}/>
-			<#else>
-				return true;
-			</#if>
-		}
-
-		@Override public void onReceiveVibration(ServerLevel world, BlockPos vibrationPos, Holder<GameEvent> holder, Entity entity, Entity projectileShooter, float distance) {
-			<#if hasProcedure(data.onReceivedVibration)>
-				<@procedureCode data.onReceivedVibration {
-					"x": "x",
-					"y": "y",
-					"z": "z",
-					"vibrationX": "vibrationPos.getX()",
-					"vibrationY": "vibrationPos.getY()",
-					"vibrationZ": "vibrationPos.getZ()",
-					"world": "world",
-					"blockstate": "${name}BlockEntity.this.getBlockState()",
-					"entity": "entity",
-					"sourceentity": "projectileShooter"
-				}/>
-			</#if>
-		}
-
-		@Override public void onDataChanged() {
-			${name}BlockEntity.this.setChanged();
-		}
-
-		@Override public boolean requiresAdjacentChunksToBeTicking() {
-			return true;
-		}
-	}
-    </#if>
 }
 </#compress>
 <#-- @formatter:on -->

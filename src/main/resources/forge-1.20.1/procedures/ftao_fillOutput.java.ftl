@@ -1,17 +1,26 @@
+<#include "mcelements.ftl">
+
 {
-    int _fill = ${opt.toInt(input$amount)};
-	BlockEntity blockEntity = world.getBlockEntity(BlockPos.containing(${input$x}, ${input$y}, ${input$z}));
-	if(blockEntity != null) {
-		blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, null).ifPresent(capability -> {
+    BlockEntity blockEntity = world.getBlockEntity(BlockPos.containing(${input$x}, ${input$y}, ${input$z}));
+    final FluidStack stack = new FluidStack(${input$fluid}.getFluid(), ${opt.toInt(input$amount)});
+    if(blockEntity != null) {
+		blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, null).ifPresent(fluidHandler -> {
 		    try {
-                java.lang.reflect.Method _method = capability.getClass().getMethod("fillOutput", FluidStack.class);
-                _method.setAccessible(true);
-                _method.invoke(capability, new FluidStack(${input$fluidstack}.getFluid(), _fill));
+                var method = fluidHandler.getClass().getMethod("getTank", int.class);
+                method.setAccessible(true);
+                Object tankObj = method.invoke(fluidHandler, ${opt.toInt(input$index)});
+                if(tankObj instanceof FluidTank fTank) {
+                    fTank.setFluid(stack);
+                } else if(fluidHandler instanceof FluidTank fTankA) {
+                    fTankA.setFluid(stack);
+                }
 		    } catch (NoSuchMethodException fallback) {
-                capability.fill(new FluidStack(${input$fluidstack}.getFluid(), _fill), IFluidHandler.FluidAction.EXECUTE);
+                if(fluidHandler instanceof FluidTank fTankF) {
+                    fTankF.setFluid(stack);
+                }
 		    } catch (IllegalAccessException | InvocationTargetException e) {
 		        e.printStackTrace();
 		    }
 		});
-	}
+    }
 }
