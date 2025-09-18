@@ -1,3 +1,0 @@
-global_templates:
-  - template: fluid_tanks/fluidStackWidget.java.ftl
-    name: "@SRCROOT/@BASEPACKAGEPATH/utils/FluidStackWidget.java"

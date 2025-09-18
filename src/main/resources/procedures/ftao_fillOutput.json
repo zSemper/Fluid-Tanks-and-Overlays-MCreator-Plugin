@@ -17,12 +17,17 @@
     },
     {
       "type": "input_value",
-      "name": "fluidstack",
+      "name": "fluid",
       "check": "FluidStack"
     },
     {
       "type": "input_value",
       "name": "amount",
+      "check": "Number"
+    },
+    {
+      "type": "input_value",
+      "name": "index",
       "check": "Number"
     }
   ],
@@ -36,15 +41,17 @@
       "<value name=\"x\"><block type=\"coord_x\"></block></value>",
       "<value name=\"y\"><block type=\"coord_y\"></block></value>",
       "<value name=\"z\"><block type=\"coord_z\"></block></value>",
-      "<value name=\"fluidstack\"><block type=\"ftao_getFluid\"></block></value>",
-      "<value name=\"amount\"><block type=\"math_number\"><field name=\"NUM\">100</field></block></value>"
+      "<value name=\"fluid\"><block type=\"ftao_getFluid\"></block></value>",
+      "<value name=\"amount\"><block type=\"math_number\"><field name=\"NUM\">100</field></block></value>",
+      "<value name=\"index\"><block type=\"math_number\"><field name=\"NUM\">0</field></block></value>"
     ],
     "inputs": [
       "x",
       "y",
       "z",
-      "fluidstack",
-      "amount"
+      "fluid",
+      "amount",
+      "index"
     ],
     "dependencies": [
       {

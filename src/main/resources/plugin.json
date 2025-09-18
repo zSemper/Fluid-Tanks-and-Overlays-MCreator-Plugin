@@ -1,8 +1,6 @@
 {
-  "id": "template",
+  "id": "ftao",
   "supportedversions": [
-    2024004,
-    2025001,
     2025002
   ],
   "weight": 30,

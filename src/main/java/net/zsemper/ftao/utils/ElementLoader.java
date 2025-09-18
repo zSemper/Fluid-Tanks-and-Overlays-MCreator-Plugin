@@ -1,4 +1,4 @@
-package net.zsemper.ftao.parts;
+package net.zsemper.ftao.utils;
 
 import net.mcreator.element.ModElementType;
 import net.zsemper.ftao.elements.*;

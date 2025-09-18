@@ -6,6 +6,7 @@ import net.mcreator.ui.help.IHelpContext;
 import net.mcreator.ui.init.L10N;
 import net.mcreator.ui.laf.themes.Theme;
 import net.zsemper.ftao.elements.FluidTanks;
+import net.zsemper.ftao.utils.Constants;
 
 import javax.swing.*;
 import java.util.List;
@@ -19,6 +20,6 @@ public class TankList extends JSimpleEntriesList<TankListEntry, FluidTanks.TankL
     }
 
     protected TankListEntry newEntry(JPanel parent, List<TankListEntry> entryList, boolean userAction) {
-        return new TankListEntry(this.mcreator, this.gui, parent, entryList);
+        return new TankListEntry(this.mcreator, this.gui, parent, entryList, getEntries().size() + 1);
     }
 }
