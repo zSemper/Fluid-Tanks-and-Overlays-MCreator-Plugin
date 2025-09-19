@@ -7,4 +7,4 @@ The plugin can be downloaded here:<br>
 https://www.mcreator.net/plugin/119133/fluid-tanks-and-overlays<br>
 
 # Wiki
-Coming soon
+https://zsemper.github.io/plugins/ftao
