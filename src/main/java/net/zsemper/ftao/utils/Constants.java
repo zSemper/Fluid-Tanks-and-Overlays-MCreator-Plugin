@@ -14,5 +14,5 @@ public final class Constants {
 
     public static final Dimension DIMENSION = new Dimension(90, HEIGHT);
 
-    public static final String WIKI_URL = "https://zsemper.github.io/plugin/ftao/elements/";
+    public static final String WIKI_URL = "https://zsemper.github.io/plugins/ftao/elements/";
 }
