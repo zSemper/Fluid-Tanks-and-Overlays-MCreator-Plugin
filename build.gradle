@@ -37,7 +37,7 @@ dependencies {
 }
 
 tasks.jar {
-    archiveFileName.set("ftao_v1.1_24.4-25.2.zip")
+    archiveFileName.set("ftao_v1.2.2_24.4.zip")
 
     from {
         configurations.export.collect { it.isDirectory() ? it : zipTree(it) }
