@@ -30,7 +30,7 @@
 
 <#-- @formatter:off -->
 
-<#assign tanks = w.hasElementsOfType("fluid_tanks")?then(w.getGElementsOfType("fluid_tanks")?filter(tanks -> tanks.block == name), "")>
+<#assign tanks = w.hasElementsOfType("fluid_tanks")?then(w.getGElementsOfType("fluid_tanks")?filter(tank -> (tank.block?? && tank.block == name)), "")>
 <#assign fluidTank = tanks?has_content?then(tanks[0], "")>
 
 package ${package}.block.entity;
