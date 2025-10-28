@@ -31,7 +31,7 @@
 <#-- @formatter:off -->
 <#include "../procedures.java.ftl">
 
-<#assign tanks = w.hasElementsOfType("fluid_tanks")?then(w.getGElementsOfType("fluid_tanks")?filter(tanks -> (tank.gui?? && tank.gui == name)), "")>
+<#assign tanks = w.hasElementsOfType("fluid_tanks")?then(w.getGElementsOfType("fluid_tanks")?filter(tank -> (tank.gui?? && tank.gui == name)), "")>
 <#assign fluidTank = tanks?has_content?then(tanks[0], "")>
 
 package ${package}.client.gui;
