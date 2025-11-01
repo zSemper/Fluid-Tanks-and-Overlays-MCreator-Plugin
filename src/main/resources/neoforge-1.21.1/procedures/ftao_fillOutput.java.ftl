@@ -3,14 +3,11 @@
 {
     new Object() {
         public void setFluidWithAmount(LevelAccessor level, BlockPos pos, int tank, FluidStack fluid, int amount) {
-            FluidStack stack = new FluidStack(fluid.getFluid(), amount);
             if(level instanceof ILevelExtension extension) {
                 IFluidHandler fluidHandler = extension.getCapability(Capabilities.FluidHandler.BLOCK, pos, null);
                 if(fluidHandler != null) {
-                    int max = fluidHandler.getTankCapacity(tank);
-                    if(fluidHandler.getFluidInTank(tank).getAmount() + amount > max) {
-                        stack = new FluidStack(fluid.getFluid(), max);
-                    }
+					int fill = Math.min(fluidHandler.getTankCapacity(tank), amount);
+                    FluidStack stack = new FluidStack(fluid.getFluid(), fill);
 
 			        try {
 				        var method = fluidHandler.getClass().getMethod("getTank", int.class);
