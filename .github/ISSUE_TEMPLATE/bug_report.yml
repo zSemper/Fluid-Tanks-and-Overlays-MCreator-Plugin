@@ -29,6 +29,7 @@ body:
         - 1.20.1 Forge
         - 1.21.1 NeoForge
         - 1.21.4 NeoForge
+        - Other (specify in additional context)
     validations:
       required: true
   - type: dropdown
@@ -38,6 +39,7 @@ body:
       options:
         - MCreator 2024.4
         - MCreator 2025.2
+        - Other (specify in additional context)
     validations:
       required: true
   - type: textarea
@@ -56,4 +58,5 @@ body:
       description: If you have any additional context about the issue
       placeholder: Additional information
     validations:
+
       required: false
