@@ -3,16 +3,14 @@ package net.zsemper.ftao.elements;
 import net.mcreator.element.ModElementType;
 import net.mcreator.ui.MCreator;
 import net.mcreator.ui.component.JEmptyBox;
-import net.mcreator.ui.component.SearchableComboBox;
-import net.mcreator.ui.component.util.ComboBoxUtil;
 import net.mcreator.ui.component.util.ComponentUtils;
 import net.mcreator.ui.component.util.PanelUtils;
 import net.mcreator.ui.help.HelpUtils;
 import net.mcreator.ui.init.L10N;
 import net.mcreator.ui.minecraft.SingleModElementSelector;
 import net.mcreator.ui.modgui.ModElementGUI;
-import net.mcreator.ui.validation.AggregatedValidationResult;
 import net.mcreator.workspace.elements.ModElement;
+import net.zsemper.ftao.parts.BlockComboBox;
 import net.zsemper.ftao.utils.Constants;
 import net.zsemper.ftao.parts.OverlayList;
 import net.zsemper.ftao.parts.TankList;
@@ -22,10 +20,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.stream.Collectors;
 
 public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
-    private final SearchableComboBox<String> block;
+    private final BlockComboBox block;
     private final JComboBox<String> inteType;
     private final TankList tanks;
     private final SingleModElementSelector gui;
@@ -34,7 +31,7 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
     public FluidTanksGUI(MCreator mcreator, ModElement modElement, boolean editingMode) {
         super(mcreator, modElement, editingMode);
 
-        block = new SearchableComboBox<>();
+        block = new BlockComboBox();
         inteType = new JComboBox<>(new String[]{"Default", "Input", "Output"});
         tanks = new TankList(mcreator, this);
         gui = new SingleModElementSelector(mcreator, ModElementType.GUI);
@@ -50,7 +47,6 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
         JComponent guiName = L10N.label("elementGui.fluidTanks.gui", Constants.NO_PARAMS);
 
         ComponentUtils.deriveFont(blockName, 16);
-        ComponentUtils.deriveFont(block, 16);
         ComponentUtils.deriveFont(inteTankType, 16);
         ComponentUtils.deriveFont(inteType, 16);
         ComponentUtils.deriveFont(guiName, 16);
@@ -62,7 +58,6 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
         overlays.setOpaque(false);
 
         blockName.setPreferredSize(new Dimension(50, Constants.HEIGHT));
-        block.setPreferredSize(new Dimension(200, Constants.HEIGHT));
         inteTankType.setPreferredSize(new Dimension(150, Constants.HEIGHT));
         inteType.setPreferredSize(new Dimension(200, Constants.HEIGHT));
         guiName.setPreferredSize(new Dimension(50, 40));
@@ -88,7 +83,7 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
 
         JComponent tankPanel = PanelUtils.northAndCenterElement(HelpUtils.wrapWithHelpButton(this.withEntry("fluid_tanks/tanks"), L10N.label("elementGui.fluidTanks.tanks", Constants.NO_PARAMS)), this.tanks);
         tankPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-        globalTanks.add(PanelUtils.northAndCenterElement(PanelUtils.join(0, new Component[]{mainTanks}), tankPanel));
+        globalTanks.add(PanelUtils.northAndCenterElement(PanelUtils.join(0, mainTanks), tankPanel));
 
 
         // Overlays
@@ -104,7 +99,7 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
 
         JComponent overlayPanel = PanelUtils.northAndCenterElement(HelpUtils.wrapWithHelpButton(this.withEntry("fluid_tanks/overlays"), L10N.label("elementGui.fluidTanks.overlays", Constants.NO_PARAMS)), this.overlays);
         overlayPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        globalOverlays.add(PanelUtils.northAndCenterElement(PanelUtils.join(0, new Component[]{mainOverlays}), overlayPanel));
+        globalOverlays.add(PanelUtils.northAndCenterElement(PanelUtils.join(0, mainOverlays), overlayPanel));
 
         JPanel main = new JPanel(new GridLayout(2, 1, 2, 2));
         main.setOpaque(false);
@@ -116,20 +111,9 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
         addPage(L10N.t("elementgui.common.page_properties", Constants.NO_PARAMS), global);
     }
 
-    protected AggregatedValidationResult validatePage(int page) {
-        if(block.getSelectedItem() == null) {
-            return new AggregatedValidationResult.FAIL(L10N.t("elementGui.fluidTanks.valBlock", Constants.NO_PARAMS));
-        }
-        return new AggregatedValidationResult.PASS();
-    }
-
     public void reloadDataLists() {
         super.reloadDataLists();
-
-        ComboBoxUtil.updateComboBoxContents(block, this.mcreator.getWorkspace().getModElements().stream().filter((var) -> {
-            return var.getType() == ModElementType.BLOCK;
-        }).map(ModElement::getName).collect(Collectors.toList()));
-
+        block.setBlockEntries(mcreator.getWorkspace());
         tanks.reloadDataLists();
         overlays.reloadDataLists();
     }
