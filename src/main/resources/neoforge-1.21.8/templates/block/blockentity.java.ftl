@@ -31,12 +31,12 @@
 <#-- @formatter:off -->
 <#include "../procedures.java.ftl">
 
-<#assign tanks = w.hasElementsOfType("fluid_tanks")?then(w.getGElementsOfType("fluid_tanks")?filter(tank -> tanks.block == name), "")>
+<#assign tanks = w.hasElementsOfType("fluid_tanks")?then(w.getGElementsOfType("fluid_tanks")?filter(tank -> (tank.block?? && tank.block == name)), "")>
 <#assign fluidTank = tanks?has_content?then(tanks[0], "")>
 
 package ${package}.block.entity;
 
-<#compress>
+<@javacompress>
 public class ${name}BlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer
 		<#if data.sensitiveToVibration>, GameEventListener.Provider<VibrationSystem.Listener>, VibrationSystem</#if> {
 
@@ -58,63 +58,61 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 		super(${JavaModName}BlockEntities.${REGISTRYNAME}.get(), position, state);
 	}
 
-	@Override public void loadAdditional(CompoundTag compound, HolderLookup.Provider lookupProvider) {
-		super.loadAdditional(compound, lookupProvider);
+	<#if !data.inventoryDropWhenDestroyed>
+	@Override public void preRemoveSideEffects(BlockPos blockpos, BlockState blockstate) {
+	}
+	</#if>
 
-		if (!this.tryLoadLootTable(compound))
+	@Override public void loadAdditional(ValueInput valueInput) {
+		super.loadAdditional(valueInput);
+
+		if (!this.tryLoadLootTable(valueInput))
 			this.stacks = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
 
-		ContainerHelper.loadAllItems(compound, this.stacks, lookupProvider);
+		ContainerHelper.loadAllItems(valueInput, this.stacks);
 
 		<#if data.hasEnergyStorage>
-		if(compound.get("energyStorage") instanceof IntTag intTag)
-			energyStorage.deserializeNBT(lookupProvider, intTag);
+		valueInput.child("energyStorage").ifPresent(input -> energyStorage.deserialize(input));
 		</#if>
 
 		<#if data.isFluidTank>
 		    <#if fluidTank != "">
 		        for(int i = 0; i < fluidTanks.length; i++) {
-		            fluidTanks[i].readFromNBT(lookupProvider, compound.getCompound("fluidTank" + i));
+		            final int index = i;
+		            valueInput.child("fluidTank" + i).ifPresent(input -> fluidTanks[index].deserialize(input));
 		        }
 		    <#else>
-		        fluidTank0.readFromNBT(lookupProvider, compound.getCompound("fluidTank0"));
-		    </#if>
-		</#if>
-
-		<#if data.sensitiveToVibration>
-		if (compound.contains("listener", 10)) {
-			VibrationSystem.Data.CODEC.parse(lookupProvider.createSerializationContext(NbtOps.INSTANCE), compound.getCompound("listener"))
-					.resultOrPartial(e -> ${JavaModName}.LOGGER.error("Failed to parse vibration listener for ${data.name}: '{}'", e))
-					.ifPresent(data -> this.vibrationData = data);
-		}
-		</#if>
-	}
-
-	@Override public void saveAdditional(CompoundTag compound, HolderLookup.Provider lookupProvider) {
-		super.saveAdditional(compound, lookupProvider);
-
-		if (!this.trySaveLootTable(compound)) {
-			ContainerHelper.saveAllItems(compound, this.stacks, lookupProvider);
-		}
-
-		<#if data.hasEnergyStorage>
-		compound.put("energyStorage", energyStorage.serializeNBT(lookupProvider));
-		</#if>
-
-		<#if data.isFluidTank>
-		    <#if fluidTank != "">
-		        for(int i = 0; i < fluidTanks.length; i++) {
-		            compound.put("fluidTank" + i, fluidTanks[i].writeToNBT(lookupProvider, new CompoundTag()));
-		        }
-		    <#else>
-		        compound.put("fluidTank0", fluidTank0.writeToNBT(lookupProvider, new CompoundTag()));
+                valueInput.child("fluidTank0").ifPresent(input -> fluidTank0.deserialize(input));
             </#if>
 		</#if>
 
 		<#if data.sensitiveToVibration>
-		VibrationSystem.Data.CODEC.encodeStart(lookupProvider.createSerializationContext(NbtOps.INSTANCE), this.vibrationData)
-				.resultOrPartial(e -> ${JavaModName}.LOGGER.error("Failed to encode vibration listener for ${data.name}: '{}'", e))
-				.ifPresent(listener -> compound.put("listener", listener));
+		this.vibrationData = valueInput.read("listener", VibrationSystem.Data.CODEC).orElseGet(VibrationSystem.Data::new);
+		</#if>
+	}
+
+	@Override public void saveAdditional(ValueOutput valueOutput) {
+		super.saveAdditional(valueOutput);
+
+		if (!this.trySaveLootTable(valueOutput))
+			ContainerHelper.saveAllItems(valueOutput, this.stacks);
+
+		<#if data.hasEnergyStorage>
+		energyStorage.serialize(valueOutput.child("energyStorage"));
+		</#if>
+
+		<#if data.isFluidTank>
+		    <#if fluidTank != "">
+		        for(int i = 0; i < fluidTanks.length; i++) {
+		            fluidTanks[i].serialize(valueOutput.child("fluidTank" + i));
+		        }
+		    <#else>
+                fluidTank0.serialize(valueOutput.child("fluidTank0"));
+            </#if>
+		</#if>
+
+		<#if data.sensitiveToVibration>
+		valueOutput.store("listener", VibrationSystem.Data.CODEC, this.vibrationData);
 		</#if>
 	}
 
@@ -382,7 +380,6 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 	        </#list>
 	    </#if>
 
-
         // FtaO: Holds all fluid tanks + extra with individual type setting
 	    private final FluidTank[] fluidTanks = {
 	        fluidTank0
@@ -407,6 +404,8 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 	            </#list>
 
 	            ${ioTanks?join(",")}
+	        <#else>
+	            fluidTank0
 	        </#if>
 	    };
 
@@ -478,7 +477,7 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 
 		<#if data.vibrationalEvents?has_content>
 		@Override public TagKey<GameEvent> getListenableEvents() {
-			return TagKey.create(Registries.GAME_EVENT, ResourceLocation.withDefaultNamespace("${data.getModElement().getRegistryName()}_can_listen"));
+			return TagKey.create(Registries.GAME_EVENT, ResourceLocation.withDefaultNamespace("${registryname}_can_listen"));
 		}
 		</#if>
 
@@ -537,5 +536,5 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 	}
     </#if>
 }
-</#compress>
+</@javacompress>
 <#-- @formatter:on -->

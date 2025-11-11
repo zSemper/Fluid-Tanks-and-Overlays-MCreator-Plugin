@@ -16,7 +16,6 @@ public class FluidStackWidget extends AbstractWidget {
 	private final Screen screen;
 	private final FluidTank tank;
 	private final ResourceLocation BLOCK_ATLAS = ResourceLocation.withDefaultNamespace("textures/atlas/blocks.png");
-	private final Function<ResourceLocation, RenderType> RENDER = RenderType.GUI_TEXTURED; // .apply(BLOCK_ATLAS);
 
 	public FluidStackWidget(Screen screen, FluidTank tank, int x, int y, int width, int height) {
 		super(x, y, width, height, Component.empty());
@@ -26,8 +25,8 @@ public class FluidStackWidget extends AbstractWidget {
 
 	public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 		Minecraft minecraft = Minecraft.getInstance();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.enableDepthTest();
+		// RenderSystem.defaultBlendFunc();
+		// RenderSystem.enableDepthTest();
 
 		this.renderTooltip(guiGraphics, mouseX, mouseY);
 
@@ -43,7 +42,7 @@ public class FluidStackWidget extends AbstractWidget {
 				TextureAtlasSprite sprite = atlas.getSprite(still);
 				int color = props.getTintColor();
 
-				RenderSystem.enableBlend();
+				// RenderSystem.enableBlend();
 
 				int stored = tank.getFluidAmount();
 				float capacity = (float) tank.getCapacity();
@@ -53,15 +52,15 @@ public class FluidStackWidget extends AbstractWidget {
 				int atlasWidth = (int) ((float) sprite.contents().width() / (sprite.getU1() - sprite.getU0()));
 				int atlasHeight = (int) ((float) sprite.contents().height() / (sprite.getV1() - sprite.getV0()));
 
-				guiGraphics.pose().pushPose();
-				guiGraphics.pose().translate(0.0F, (float) (this.getHeight() - 16), 0.0F);
+				// guiGraphics.pose().pushPose();
+				// guiGraphics.pose().translate(0.0F, (float) (this.getHeight() - 16), 0.0F);
 
 				for(int i = 0; (double) i < Math.ceil((double) ((float) renderableHeight / 16.0F)); ++i) {
 					int drawingHeight = Math.min(16, renderableHeight - 16 * i);
 					int notDrawingHeight = 16 - drawingHeight;
 
 					guiGraphics.blit(
-						RenderType::guiTextured,
+						RenderPipelines.GUI_TEXTURED,
 						BLOCK_ATLAS,
 						this.getX(),
 						this.getY() + notDrawingHeight,
@@ -73,15 +72,15 @@ public class FluidStackWidget extends AbstractWidget {
 						atlasHeight,
                         color
 					);
-					guiGraphics.pose().translate(0.0F, -16.0F, 0.0F);
+					// guiGraphics.pose().translate(0.0F, -16.0F, 0.0F);
 				}
 
-				RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-				guiGraphics.pose().popPose();
+				// RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+				// guiGraphics.pose().popPose();
  			}
 		}
 
-		RenderSystem.disableDepthTest();
+		// RenderSystem.disableDepthTest();
 	}
 
 	protected void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput) {}
@@ -101,7 +100,7 @@ public class FluidStackWidget extends AbstractWidget {
 			}
 
 			tooltipText[1] = Component.literal(amount + "mB / " + tank.getCapacity() + "mB").getVisualOrderText();
-			guiGraphics.renderTooltip(font, Arrays.asList(tooltipText), mouseX, mouseY);
+			guiGraphics.setTooltipForNextFrame(font, Arrays.asList(tooltipText), mouseX, mouseY);
 		}
 	}
 
