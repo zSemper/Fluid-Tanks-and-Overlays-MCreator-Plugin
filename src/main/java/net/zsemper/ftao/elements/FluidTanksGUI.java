@@ -42,9 +42,9 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
     }
 
     protected void initGUI() {
-        JComponent blockName = L10N.label("elementGui.fluidTanks.block", Constants.NO_PARAMS);
-        JComponent inteTankType = L10N.label("elementGui.fluidTanks.tankType", Constants.NO_PARAMS);
-        JComponent guiName = L10N.label("elementGui.fluidTanks.gui", Constants.NO_PARAMS);
+        JComponent blockName = L10N.label("elementGui.fluidTanks.block");
+        JComponent inteTankType = L10N.label("elementGui.fluidTanks.tankType");
+        JComponent guiName = L10N.label("elementGui.fluidTanks.gui");
 
         ComponentUtils.deriveFont(blockName, 16);
         ComponentUtils.deriveFont(inteTankType, 16);
@@ -81,7 +81,7 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
         mainTanks.add(inteType);
         mainTanks.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 0));
 
-        JComponent tankPanel = PanelUtils.northAndCenterElement(HelpUtils.wrapWithHelpButton(this.withEntry("fluid_tanks/tanks"), L10N.label("elementGui.fluidTanks.tanks", Constants.NO_PARAMS)), this.tanks);
+        JComponent tankPanel = PanelUtils.northAndCenterElement(HelpUtils.wrapWithHelpButton(this.withEntry("fluid_tanks/tanks"), L10N.label("elementGui.fluidTanks.tanks")), this.tanks);
         tankPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
         globalTanks.add(PanelUtils.northAndCenterElement(PanelUtils.join(0, mainTanks), tankPanel));
 
@@ -97,7 +97,7 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
         mainOverlays.add(gui);
         mainOverlays.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 0));
 
-        JComponent overlayPanel = PanelUtils.northAndCenterElement(HelpUtils.wrapWithHelpButton(this.withEntry("fluid_tanks/overlays"), L10N.label("elementGui.fluidTanks.overlays", Constants.NO_PARAMS)), this.overlays);
+        JComponent overlayPanel = PanelUtils.northAndCenterElement(HelpUtils.wrapWithHelpButton(this.withEntry("fluid_tanks/overlays"), L10N.label("elementGui.fluidTanks.overlays")), this.overlays);
         overlayPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         globalOverlays.add(PanelUtils.northAndCenterElement(PanelUtils.join(0, mainOverlays), overlayPanel));
 
@@ -108,7 +108,7 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
 
         global.add(PanelUtils.northAndCenterElement(new JEmptyBox(), main));
 
-        addPage(L10N.t("elementgui.common.page_properties", Constants.NO_PARAMS), global);
+        addPage(L10N.t("elementgui.common.page_properties"), global);
     }
 
     public void reloadDataLists() {

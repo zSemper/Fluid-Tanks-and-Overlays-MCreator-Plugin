@@ -1,7 +1,13 @@
 <#include "mcelements.ftl">
 
 {
+    /**
+     * Deprecated
+     * Removal MCreator 2026.2
+     * Use Set fluid [] with [] mb in tank [] of block instead
+     */
     new Object() {
+        @Deprecated(since = "2025.2", forRemoval = true)
         public void setFluidWithAmount(LevelAccessor level, BlockPos pos, int tank, FluidStack fluid, int amount) {
             if(level instanceof ILevelExtension extension) {
                 IFluidHandler fluidHandler = extension.getCapability(Capabilities.FluidHandler.BLOCK, pos, null);

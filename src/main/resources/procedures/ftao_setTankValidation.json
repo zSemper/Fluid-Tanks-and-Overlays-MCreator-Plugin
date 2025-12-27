@@ -1,0 +1,43 @@
+{
+  "args0": [
+    {
+      "type": "input_value",
+      "name": "index",
+      "check": "Number"
+    },
+    {
+      "type": "input_value",
+      "name": "fluid",
+      "check": "FluidStack"
+    }
+  ],
+  "mutator": "validation_mutator",
+  "inputsInline": true,
+  "previousStatement": null,
+  "nextStatement": null,
+  "colour": "#a5a55b",
+  "mcreator": {
+    "group": "ftao03",
+    "toolbox_id": "ftao",
+    "toolbox_init": [
+      "<value name=\"index\"><block type=\"math_number\"><field name=\"NUM\">0</field></block></value>",
+      "<value name=\"fluid\"><block type=\"ftao_tankFluidStack\"></block></value>",
+      "<mutation inputs=\"1\"></mutation>"
+    ],
+    "inputs": [
+      "index",
+      "fluid"
+    ],
+    "repeating_inputs": [
+      {
+        "name": "entry"
+      }
+    ],
+    "dependencies": [
+      { "name": "world", "type": "world" },
+      { "name": "x", "type": "number" },
+      { "name": "y", "type": "number" },
+      { "name": "z", "type": "number" }
+    ]
+  }
+}

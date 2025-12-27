@@ -2,21 +2,6 @@
   "args0": [
     {
       "type": "input_value",
-      "name": "x",
-      "check": "Number"
-    },
-    {
-      "type": "input_value",
-      "name": "y",
-      "check": "Number"
-    },
-    {
-      "type": "input_value",
-      "name": "z",
-      "check": "Number"
-    },
-    {
-      "type": "input_value",
       "name": "fluid",
       "check": "FluidStack"
     },
@@ -36,27 +21,23 @@
   "nextStatement": null,
   "colour": "#a5a55b",
   "mcreator": {
+    "group": "ftao00",
+    "toolbox_id": "ftao",
     "toolbox_init": [
-      "<value name=\"x\"><block type=\"coord_x\"></block></value>",
-      "<value name=\"y\"><block type=\"coord_y\"></block></value>",
-      "<value name=\"z\"><block type=\"coord_z\"></block></value>",
       "<value name=\"fluid\"><block type=\"ftao_getFluid\"></block></value>",
       "<value name=\"amount\"><block type=\"math_number\"><field name=\"NUM\">100</field></block></value>",
       "<value name=\"index\"><block type=\"math_number\"><field name=\"NUM\">0</field></block></value>"
     ],
     "inputs": [
-      "x",
-      "y",
-      "z",
       "fluid",
       "amount",
       "index"
     ],
     "dependencies": [
-      {
-        "name": "world",
-        "type": "world"
-      }
+      { "name": "world", "type": "world" },
+      { "name": "x", "type": "number" },
+      { "name": "y", "type": "number" },
+      { "name": "z", "type": "number" }
     ]
   }
 }

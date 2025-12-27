@@ -1,0 +1,5 @@
+global_templates:
+  - template: elementinits/blockentities.java.ftl
+    name: "@SRCROOT/@BASEPACKAGEPATH/init/@JavaModNameBlockEntities.java"
+  - template: fluid_tanks/extended_fluid_tank.java.ftl
+    name: "@SRCROOT/@BASEPACKAGEPATH/utils/ExtendedFluidTank.java"

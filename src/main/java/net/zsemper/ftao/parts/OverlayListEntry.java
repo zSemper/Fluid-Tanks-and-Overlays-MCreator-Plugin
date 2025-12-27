@@ -5,7 +5,6 @@ import net.mcreator.ui.component.entries.JSimpleListEntry;
 import net.mcreator.ui.help.HelpUtils;
 import net.mcreator.ui.help.IHelpContext;
 import net.mcreator.ui.init.L10N;
-import net.mcreator.workspace.Workspace;
 import net.zsemper.ftao.elements.FluidTanks;
 import net.zsemper.ftao.utils.Constants;
 
@@ -16,6 +15,7 @@ public class OverlayListEntry extends JSimpleListEntry<FluidTanks.OverlayListEnt
     private final JSpinner index = new JSpinner(new SpinnerNumberModel(0, 0, 100, 1));
     private final JSpinner xPos = new JSpinner(new SpinnerNumberModel(0, 0, 1000, 1));
     private final JSpinner yPos = new JSpinner(new SpinnerNumberModel(0, 0, 1000, 1));
+    private final JSpinner width = new JSpinner(new SpinnerNumberModel(16, 1, 1000, 1));
     private final JSpinner height = new JSpinner(new SpinnerNumberModel(16, 1, 1000, 1));
 
     public OverlayListEntry(MCreator mcreator, IHelpContext gui, JPanel parent, List<OverlayListEntry> entryList, int entryIndex) {
@@ -24,18 +24,21 @@ public class OverlayListEntry extends JSimpleListEntry<FluidTanks.OverlayListEnt
         index.setPreferredSize(Constants.DIMENSION);
         xPos.setPreferredSize(Constants.DIMENSION);
         yPos.setPreferredSize(Constants.DIMENSION);
+        width.setPreferredSize(Constants.DIMENSION);
         height.setPreferredSize(Constants.DIMENSION);
 
         index.setValue(entryIndex);
 
-        this.line.add(HelpUtils.wrapWithHelpButton(gui.withEntry("fluid_tanks/tank_index"), L10N.label("elementGui.overlayListEntry.tankIndex", Constants.NO_PARAMS)));
-        this.line.add(index);
-        this.line.add(L10N.label("elementGui.overlayListEntry.xPos", Constants.NO_PARAMS));
-        this.line.add(xPos);
-        this.line.add(L10N.label("elementGui.overlayListEntry.yPos", Constants.NO_PARAMS));
-        this.line.add(yPos);
-        this.line.add(HelpUtils.wrapWithHelpButton(gui.withEntry("fluid_tanks/overlay/tank_height"), L10N.label("elementGui.overlayListEntry.height", Constants.NO_PARAMS)));
-        this.line.add(height);
+        line.add(HelpUtils.wrapWithHelpButton(gui.withEntry("fluid_tanks/tank_index"), L10N.label("elementGui.overlayListEntry.tankIndex")));
+        line.add(index);
+        line.add(L10N.label("elementGui.overlayListEntry.xPos"));
+        line.add(xPos);
+        line.add(L10N.label("elementGui.overlayListEntry.yPos"));
+        line.add(yPos);
+        line.add(L10N.label("elementGui.overlayListEntry.width"));
+        line.add(width);
+        line.add(HelpUtils.wrapWithHelpButton(gui.withEntry("fluid_tanks/overlay/tank_height"), L10N.label("elementGui.overlayListEntry.height")));
+        line.add(height);
     }
 
     public void reloadDataLists() {
@@ -44,10 +47,11 @@ public class OverlayListEntry extends JSimpleListEntry<FluidTanks.OverlayListEnt
 
     @Override
     protected void setEntryEnabled(boolean enabled) {
-        this.xPos.setEnabled(enabled);
-        this.yPos.setEnabled(enabled);
-        this.height.setEnabled(enabled);
-        this.index.setEnabled(enabled);
+        xPos.setEnabled(enabled);
+        yPos.setEnabled(enabled);
+        width.setEnabled(enabled);
+        height.setEnabled(enabled);
+        index.setEnabled(enabled);
     }
 
     @Override
@@ -55,6 +59,7 @@ public class OverlayListEntry extends JSimpleListEntry<FluidTanks.OverlayListEnt
         FluidTanks.OverlayListEntry entry = new FluidTanks.OverlayListEntry();
         entry.xPos = (int) xPos.getValue();
         entry.yPos = (int) yPos.getValue();
+        entry.width = (int) width.getValue();
         entry.height = (int) height.getValue();
         entry.index = (int) index.getValue();
         return entry;
@@ -64,6 +69,7 @@ public class OverlayListEntry extends JSimpleListEntry<FluidTanks.OverlayListEnt
     public void setEntry(FluidTanks.OverlayListEntry entry) {
         xPos.setValue(entry.xPos);
         yPos.setValue(entry.yPos);
+        width.setValue(entry.width);
         height.setValue(entry.height);
         index.setValue(entry.index);
     }

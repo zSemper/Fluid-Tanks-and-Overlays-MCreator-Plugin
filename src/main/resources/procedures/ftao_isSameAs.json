@@ -1,0 +1,25 @@
+{
+  "args0": [
+    {
+      "type": "input_value",
+      "name": "fluidstack1",
+      "check": "FluidStack"
+    },
+    {
+      "type": "input_value",
+      "name": "fluidstack2",
+      "check": "FluidStack"
+    }
+  ],
+  "inputsInline": true,
+  "output": "Boolean",
+  "colour": "#00c8d5",
+  "mcreator": {
+    "group": "ftao07",
+    "toolbox_id": "ftao",
+    "inputs": [
+      "fluidstack1",
+      "fluidstack2"
+    ]
+  }
+}
