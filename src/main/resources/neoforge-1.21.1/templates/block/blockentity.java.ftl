@@ -235,117 +235,34 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 	</#if>
 
 	<#if data.isFluidTank>
-        // FTaO: modifies the IFluidHandler to work with all tanks instead of only the first one
-	    public final IFluidHandler fluidHandler = new IFluidHandler() {
-		    @Override
-		    public int getTanks() {
-			    return fluidTanks.length;
-		    }
+	    <#if fluidTank != "">
+	        private final ExtendedFluidTank fluidTank0 = new ExtendedFluidTank(${data.fluidCapacity}
+	            <#if data.fluidRestrictions?has_content>
+	                , fs -> {
+                        <#list data.fluidRestrictions as restrict>
+                            if (fs.getFluid() == ${restrict}) return true;
+                        </#list>
+                        return false;
+                    }
+	            </#if>
+	        ) {
+	            @Override
+	            protected void onContentsChanged() {
+	                super.onContentsChanged();
+	                setChanged();
+	                level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
+	            }
 
-		    @Override
-		    public FluidStack getFluidInTank(int tank) {
-			    return fluidTanks[tank].getFluid();
-		    }
+	            @Override
+	            public void setFluid(FluidStack stack) {
+	                super.setFluid(stack);
+	                setChanged();
+	                level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
+	            }
+	        };
 
-		    @Override
-		    public int getTankCapacity(int tank) {
-			    return fluidTanks[tank].getCapacity();
-		    }
-
-		    @Override
-		    public boolean isFluidValid(int tank, FluidStack stack) {
-			    return fluidTanks[tank].isFluidValid(stack);
-		    }
-
-		    @Override
-		    public int fill(FluidStack stack, FluidAction action) {
-		        FluidTank[] tanks = Stream.concat(Arrays.stream(inputTanks), Arrays.stream(ioTanks)).toArray(FluidTank[]::new);
-
-			    for(FluidTank tank : tanks) {
-				    int tankSpace = tank.getCapacity() - tank.getFluidAmount();
-
-				    if(stack.isEmpty()) {
-					    return 0;
-				    }
-
-				    if(!tank.getFluid().isEmpty() && tank.getFluid().getFluid().isSame(stack.getFluid())) {
-					    int fillAmount = Math.min(stack.getAmount(), tankSpace);
-					    if(fillAmount > 0) {
-						    return tank.fill(stack.copyWithAmount(fillAmount), action);
-					    } else {
-						    return 0;
-					    }
-				    }
-
-				    if(tank.isEmpty() && tank.isFluidValid(stack)) {
-					    return tank.fill(stack.copyWithAmount(stack.getAmount()), action);
-				    }
-			    }
-			    return 0;
-		    }
-
-		    @Override
-		    public FluidStack drain(FluidStack stack, FluidAction action) {
-		        FluidTank[] tanks = Stream.concat(Arrays.stream(outputTanks), Arrays.stream(ioTanks)).toArray(FluidTank[]::new);
-
-			    for(FluidTank tank : tanks) {
-				    if(stack.getFluid() == tank.getFluid().getFluid()) {
-					    return tank.drain(stack.getAmount(), action);
-				    }
-			    }
-			    return FluidStack.EMPTY;
-		    }
-
-		    @Override
-		    public FluidStack drain(int maxDrain, FluidAction action) {
-		        FluidTank[] tanks = Stream.concat(Arrays.stream(outputTanks), Arrays.stream(ioTanks)).toArray(FluidTank[]::new);
-
-			    for(FluidTank tank : tanks) {
-				    if(tank.getFluidAmount() > 0) {
-					    return tank.drain(maxDrain, action);
-				    }
-			    }
-			    return FluidStack.EMPTY;
-		    }
-
-	    	// FTaO
-		    public FluidTank getTank(int index) {
-			    return fluidTanks[index];
-		    }
-	    };
-
-        // FTaO: Used in BlockEntity Init and returns the entire IFluidHandler instead of the IFluidHandler of the first set fluid tank
-	    public IFluidHandler getFluidTank() {
-		    return fluidHandler;
-	    }
-
-	    private final FluidTank fluidTank0 = new FluidTank(${data.fluidCapacity}
-		    <#if data.fluidRestrictions?has_content>
-		        , fs -> {
-		            <#list data.fluidRestrictions as fluidRestriction>
-                        if (fs.getFluid() == ${fluidRestriction}) return true;
-                    </#list>
-		            return false;
-		        }
-		    </#if>
-	    ) {
-		    @Override protected void onContentsChanged() {
-		        super.onContentsChanged();
-			    setChanged();
-			    level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
-		    }
-
-		    @Override
-		    public void setFluid(FluidStack stack) {
-			    super.setFluid(stack);
-			    setChanged();
-			    level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
-		    }
-	    };
-
-        <#if fluidTank != "">
 	        <#list fluidTank.tanks as tank>
-	            private final FluidTank fluidTank${tank?index + 1} = new FluidTank(${tank.size}
+	            private final ExtendedFluidTank fluidTank${tank?index + 1} = new ExtendedFluidTank(${tank.size}
 	                <#if tank.fluidRestrictions?has_content>
 	                    , fs -> {
 	                        <#list tank.fluidRestrictions as restrict>
@@ -370,82 +287,119 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 		            }
 	            };
 	        </#list>
-	    </#if>
 
-	    public FluidTank getFluidTank0() {
-	        return fluidTank0;
-	    }
+    	    public ExtendedFluidTank getFluidTank0() {
+    		    return fluidTank0;
+    	    }
 
-	    <#if fluidTank != "">
-	        <#list fluidTank.tanks as tank>
-	            public FluidTank getFluidTank${tank?index + 1}() {
-	                return fluidTank${tank?index + 1};
+        	<#list fluidTank.tanks as tank>
+        	    public ExtendedFluidTank getFluidTank${tank?index + 1}() {
+        	        return fluidTank${tank?index + 1};
+        	    }
+        	</#list>
+	    <#else>
+	        private final ExtendedFluidTank fluidTank0 = new ExtendedFluidTank(${data.fluidCapacity}
+	            <#if data.fluidRestrictions?has_content>
+	                , fs -> {
+                        <#list data.fluidRestrictions as restrict>
+                            if (fs.getFluid() == ${restrict}) return true;
+                        </#list>
+                        return false;
+                    }
+	            </#if>
+	        ) {
+	            @Override
+	            protected void onContentsChanged() {
+	                super.onContentsChanged();
+	                setChanged();
+	                level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
 	            }
-	        </#list>
+
+	            @Override
+	            public void setFluid(FluidStack stack) {
+	                super.setFluid(stack);
+	                setChanged();
+	                level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
+	            }
+
+	            public FluidTank getTank(int tank) {
+	                return this;
+	            }
+	        };
+
+    	    public ExtendedFluidTank getFluidTank0() {
+    		    return fluidTank0;
+    	    }
+
+    	    public IFluidHandler getFluidTank() {
+    	        return fluidTank0;
+    	    }
 	    </#if>
+    </#if>
+    // FtaO: Holds all fluid tanks + extra with individual type setting
+    public final ExtendedFluidTank[] fluidTanks = {
+        <#if data.isFluidTank>
+            fluidTank0
+    	    <#if fluidTank != "">
+    	        <#list fluidTank.tanks as tank>
+    	            , fluidTank${tank?index + 1}
+                </#list>
+            </#if>
+        </#if>
+    };
 
-        // FtaO: Holds all fluid tanks + extra with individual type setting
-	    private final FluidTank[] fluidTanks = {
-	        fluidTank0
-	        <#if fluidTank != "">
-	            <#list fluidTank.tanks as tank>
-	                , fluidTank${tank?index + 1}
-	            </#list>
-	        </#if>
-	    };
+    <#if data.isFluidTank && fluidTank != "">
+    	private final ExtendedFluidTank[] ioTanks = {
+    	    <#assign ioTanks = []>
 
-	    private final FluidTank[] ioTanks = {
-	        <#if fluidTank != "">
-	            <#assign ioTanks = []>
+  	        <#if fluidTank.inteType == "Default">
+  	            <#assign ioTanks += ["fluidTank0"]>
+   	        </#if>
 
-	            <#if fluidTank.inteType == "Default">
-	                <#assign ioTanks += ["fluidTank0"]>
-	            </#if>
-	            <#list fluidTank.tanks as tank>
-	                <#if tank.type == "Default">
-	                    <#assign ioTanks += ["fluidTank${tank?index + 1}"]>
-	                </#if>
-	            </#list>
+   	        <#list fluidTank.tanks as tank>
+   	            <#if tank.type == "Default">
+   	                <#assign ioTanks += ["fluidTank${tank?index + 1}"]>
+   	            </#if>
+   	        </#list>
 
-	            ${ioTanks?join(",")}
-	        <#else>
-	            fluidTank0
-	        </#if>
-	    };
+    	    ${ioTanks?join(",")}
+        };
 
-	    private final FluidTank[] inputTanks = {
-	        <#if fluidTank != "">
-	            <#assign ioTanks = []>
+    	private final ExtendedFluidTank[] inputTanks = {
+    	    <#assign ioTanks = []>
 
-	            <#if fluidTank.inteType == "Input">
-	                <#assign ioTanks += ["fluidTank0"]>
-	            </#if>
-	            <#list fluidTank.tanks as tank>
-	                <#if tank.type == "Input">
-	                    <#assign ioTanks += ["fluidTank${tank?index + 1}"]>
-	                </#if>
-	            </#list>
+    	    <#if fluidTank.inteType == "Input">
+    	        <#assign ioTanks += ["fluidTank0"]>
+    	    </#if>
 
-	            ${ioTanks?join(",")}
-	        </#if>
-	    };
+    	    <#list fluidTank.tanks as tank>
+    	        <#if tank.type == "Input">
+    	            <#assign ioTanks += ["fluidTank${tank?index + 1}"]>
+    	        </#if>
+    	    </#list>
 
-	    private final FluidTank[] outputTanks = {
-	        <#if fluidTank != "">
-	            <#assign ioTanks = []>
+    	    ${ioTanks?join(",")}
+    	};
 
-	            <#if fluidTank.inteType == "Output">
-	                <#assign ioTanks += ["fluidTank0"]>
-	            </#if>
-	            <#list fluidTank.tanks as tank>
-	                <#if tank.type == "Output">
-	                    <#assign ioTanks += ["fluidTank${tank?index + 1}"]>
-	                </#if>
-	            </#list>
+    	private final ExtendedFluidTank[] outputTanks = {
+    	    <#assign ioTanks = []>
 
-	            ${ioTanks?join(",")}
-	        </#if>
-	    };
+    	    <#if fluidTank.inteType == "Output">
+    	        <#assign ioTanks += ["fluidTank0"]>
+    	    </#if>
+
+    	    <#list fluidTank.tanks as tank>
+    	        <#if tank.type == "Output">
+    	            <#assign ioTanks += ["fluidTank${tank?index + 1}"]>
+    	        </#if>
+    	    </#list>
+
+    	    ${ioTanks?join(",")}
+    	};
+
+        public IFluidHandler getFluidTank() {
+            return new GlobalFluidHandler(fluidTanks, ioTanks, inputTanks, outputTanks);
+        }
     </#if>
 
     <#if data.sensitiveToVibration>

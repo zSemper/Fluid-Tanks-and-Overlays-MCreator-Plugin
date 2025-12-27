@@ -22,6 +22,11 @@ public class BlockComboBox extends JPanel {
         add(comboBox);
     }
 
+    @Override
+    public void setPreferredSize(Dimension dim) {
+        comboBox.setPreferredSize(dim);
+    }
+
     public void setBlockEntries(Workspace workspace) {
         List<ModElement> elements = workspace.getModElements().stream()
                 .filter(e -> e.getType() == ModElementType.BLOCK)

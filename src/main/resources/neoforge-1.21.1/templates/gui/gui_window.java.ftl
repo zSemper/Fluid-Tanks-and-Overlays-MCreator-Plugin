@@ -31,8 +31,8 @@
 <#-- @formatter:off -->
 <#include "../procedures.java.ftl">
 
-<#assign tanks = w.hasElementsOfType("fluid_tanks")?then(w.getGElementsOfType("fluid_tanks")?filter(tanks -> (tank.gui?? && tank.gui == name)), "")>
-<#assign fluidTank = tanks?has_content?then(tanks[0], "")>
+<#assign blocks = w.hasElementsOfType("block")?then(w.getGElementsOfType("block")?filter(block -> (block.guiBoundTo?? && block.guiBoundTo == name)), "")>
+<#assign blockEntity = blocks?has_content?then(blocks[0], "")>
 
 package ${package}.client.gui;
 
@@ -308,7 +308,7 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
 			this.addRenderableWidget(${component.getName()});
 		</#list>
 
-        <#if fluidTank != "">
+        <#if blockEntity != "">
 		    this.addFluidWidget();
 		</#if>
 	}
@@ -325,13 +325,19 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
 	}
 	</#if>
 
-    <#if fluidTank != "">
+    <#if blockEntity != "">
         public void addFluidWidget() {
-            ${fluidTank.block}BlockEntity blockEntity = (${fluidTank.block}BlockEntity) this.world.getBlockEntity(BlockPos.containing(x, y, z));
-
-            <#list fluidTank.overlays as overlay>
-                addRenderableOnly(new ${package}.utils.FluidStackWidget(this, blockEntity.getFluidTank${overlay.index}(), this.leftPos + ${overlay.xPos}, this.topPos + ${overlay.yPos}, 16, ${overlay.height}));
-            </#list>
+            if (getMenu().boundBlockEntity != null) {
+                <#list data.getComponentsOfType("FluidTank") as component>
+                    addRenderableOnly(new FluidStackWidget(this, getMenu().boundBlockEntity.getFluidTank${component.id}(), this.leftPos + ${component.gx(data.width)}, this.topPos + ${component.gy(data.height)}, ${component.width}, ${component.height},
+                        <#if hasProcedure(component.tooltip)>
+                            <@procedureOBJToStringCode component.tooltip/>
+                        <#else>
+                            null
+                        </#if>
+                    ));
+                </#list>
+            }
         }
     </#if>
 }

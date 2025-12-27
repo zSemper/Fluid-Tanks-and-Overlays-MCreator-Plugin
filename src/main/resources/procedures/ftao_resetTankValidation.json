@@ -1,0 +1,36 @@
+{
+  "args0": [
+    {
+      "type": "input_value",
+      "name": "index",
+      "check": "Number"
+    },
+    {
+      "type": "input_value",
+      "name": "void",
+      "check": "Boolean"
+    }
+  ],
+  "inputsInline": true,
+  "previousStatement": null,
+  "nextStatement": null,
+  "colour": "#a5a55b",
+  "mcreator": {
+    "group": "ftao04",
+    "toolbox_id": "ftao",
+    "toolbox_init": [
+      "<value name=\"index\"><block type=\"math_number\"><field name=\"NUM\">0</field></block></value>",
+      "<value name=\"void\"><block type=\"logic_boolean\"><field name=\"BOOL\">TRUE</field></block></value>"
+    ],
+    "inputs": [
+      "index",
+      "void"
+    ],
+    "dependencies": [
+      { "name": "world", "type": "world" },
+      { "name": "x", "type": "number" },
+      { "name": "y", "type": "number" },
+      { "name": "z", "type": "number" }
+    ]
+  }
+}

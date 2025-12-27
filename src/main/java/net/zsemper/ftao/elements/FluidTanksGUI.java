@@ -2,8 +2,6 @@ package net.zsemper.ftao.elements;
 
 import net.mcreator.element.ModElementType;
 import net.mcreator.ui.MCreator;
-import net.mcreator.ui.component.JEmptyBox;
-import net.mcreator.ui.component.SearchableComboBox;
 import net.mcreator.ui.component.util.ComponentUtils;
 import net.mcreator.ui.component.util.PanelUtils;
 import net.mcreator.ui.help.HelpUtils;
@@ -28,6 +26,7 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
     private final TankList tanks;
     private final SingleModElementSelector gui;
     private final OverlayList overlays;
+    private JPanel globalOverlays;
 
     public FluidTanksGUI(MCreator mcreator, ModElement modElement, boolean editingMode) {
         super(mcreator, modElement, editingMode);
@@ -43,9 +42,9 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
     }
 
     protected void initGUI() {
-        JComponent blockName = L10N.label("elementGui.fluidTanks.block", Constants.NO_PARAMS);
-        JComponent inteTankType = L10N.label("elementGui.fluidTanks.tankType", Constants.NO_PARAMS);
-        JComponent guiName = L10N.label("elementGui.fluidTanks.gui", Constants.NO_PARAMS);
+        JComponent blockName = L10N.label("elementGui.fluidTanks.block");
+        JComponent inteTankType = L10N.label("elementGui.fluidTanks.tankType");
+        JComponent guiName = L10N.label("elementGui.fluidTanks.gui");
 
         ComponentUtils.deriveFont(blockName, 16);
         ComponentUtils.deriveFont(inteTankType, 16);
@@ -53,42 +52,37 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
         ComponentUtils.deriveFont(guiName, 16);
         ComponentUtils.deriveFont(gui, 16);
 
+        JComponent inteTankTypeFormatted = HelpUtils.wrapWithHelpButton(this.withEntry("fluid_tanks/tanks/type"), inteTankType);
+
         block.setOpaque(false);
         inteType.setOpaque(false);
         tanks.setOpaque(false);
         overlays.setOpaque(false);
 
-        blockName.setPreferredSize(new Dimension(50, Constants.HEIGHT));
-        inteTankType.setPreferredSize(new Dimension(150, Constants.HEIGHT));
-        inteType.setPreferredSize(new Dimension(200, block.getPreferredSize().height));
+        blockName.setPreferredSize(new Dimension(185, 40));
+        block.setPreferredSize(new Dimension(200, 40));
+        inteTankTypeFormatted.setPreferredSize(new Dimension(200, 40));
+        inteType.setPreferredSize(new Dimension(200, 40));
         guiName.setPreferredSize(new Dimension(50, 40));
         gui.setPreferredSize(new Dimension(200, 40));
-
-        // Global
-        JPanel global = new JPanel(new BorderLayout());
-        global.setOpaque(false);
 
         // Tanks
         JPanel globalTanks = new JPanel(new BorderLayout());
         globalTanks.setOpaque(false);
 
         JPanel mainTanks = new JPanel();
-        mainTanks.setLayout(new BoxLayout(mainTanks, BoxLayout.X_AXIS));
+        mainTanks.setLayout(new BoxLayout(mainTanks, BoxLayout.Y_AXIS));
         mainTanks.setOpaque(false);
-        mainTanks.add(blockName);
-        mainTanks.add(block);
-        mainTanks.add(new JEmptyBox(40, Constants.HEIGHT));
-        mainTanks.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid_tanks/tanks/type"), inteTankType));
-        mainTanks.add(inteType);
-        mainTanks.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 0));
+        mainTanks.add(PanelUtils.join(FlowLayout.LEFT, PanelUtils.join(FlowLayout.LEFT, blockName), block));
+        mainTanks.add(PanelUtils.join(FlowLayout.LEFT, inteTankTypeFormatted, inteType));
 
-        JComponent tankPanel = PanelUtils.northAndCenterElement(HelpUtils.wrapWithHelpButton(this.withEntry("fluid_tanks/tanks"), L10N.label("elementGui.fluidTanks.tanks", Constants.NO_PARAMS)), this.tanks);
+        JComponent tankPanel = PanelUtils.northAndCenterElement(HelpUtils.wrapWithHelpButton(this.withEntry("fluid_tanks/tanks"), L10N.label("elementGui.fluidTanks.tanks")), this.tanks);
         tankPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
         globalTanks.add(PanelUtils.northAndCenterElement(PanelUtils.join(0, mainTanks), tankPanel));
 
 
         // Overlays
-        JPanel globalOverlays = new JPanel(new BorderLayout());
+        globalOverlays = new JPanel(new BorderLayout());
         globalOverlays.setOpaque(false);
 
         JPanel mainOverlays = new JPanel();
@@ -98,18 +92,23 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
         mainOverlays.add(gui);
         mainOverlays.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 0));
 
-        JComponent overlayPanel = PanelUtils.northAndCenterElement(HelpUtils.wrapWithHelpButton(this.withEntry("fluid_tanks/overlays"), L10N.label("elementGui.fluidTanks.overlays", Constants.NO_PARAMS)), this.overlays);
+        JPanel mainOverlaysWithInfo = new JPanel();
+        mainOverlaysWithInfo.setLayout(new BoxLayout(mainOverlaysWithInfo, BoxLayout.Y_AXIS));
+        mainOverlaysWithInfo.setOpaque(false);
+        mainOverlaysWithInfo.add(L10N.label("elementGui.fluidTanks.overlayInfo"));
+        mainOverlaysWithInfo.add(mainOverlays);
+
+        JComponent overlayPanel = PanelUtils.northAndCenterElement(HelpUtils.wrapWithHelpButton(this.withEntry("fluid_tanks/overlays"), L10N.label("elementGui.fluidTanks.overlays")), this.overlays);
         overlayPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        globalOverlays.add(PanelUtils.northAndCenterElement(PanelUtils.join(0, mainOverlays), overlayPanel));
+        globalOverlays.add(PanelUtils.northAndCenterElement(PanelUtils.join(0, mainOverlaysWithInfo), overlayPanel));
 
-        JPanel main = new JPanel(new GridLayout(2, 1, 2, 2));
-        main.setOpaque(false);
-        main.add(globalTanks);
-        main.add(globalOverlays);
+        JPanel global = new JPanel();
+        global.setLayout(new BoxLayout(global, BoxLayout.Y_AXIS));
+        global.setOpaque(false);
+        global.add(globalTanks);
+        global.add(globalOverlays);
 
-        global.add(PanelUtils.northAndCenterElement(new JEmptyBox(), main));
-
-        addPage(L10N.t("elementgui.common.page_properties", Constants.NO_PARAMS), global);
+        addPage(L10N.t("elementgui.common.page_properties"), global);
     }
 
     public void reloadDataLists() {
@@ -122,7 +121,6 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
     protected void afterGeneratableElementStored() {
         try {
             mcreator.getGenerator().generateElement(mcreator.getWorkspace().getModElementByName(block.getSelectedItem()).getGeneratableElement(), true);
-            mcreator.getGenerator().generateElement(mcreator.getWorkspace().getModElementByName(gui.getEntry()).getGeneratableElement(), true);
         } catch (Exception e) {
             Constants.LOG.error(e.getMessage());
         }
@@ -135,6 +133,8 @@ public class FluidTanksGUI extends ModElementGUI<FluidTanks> {
         tanks.setEntries(fluidTanks.tanks);
         gui.setEntry(fluidTanks.gui);
         overlays.setEntries(fluidTanks.overlays);
+
+        if (fluidTanks.overlays.isEmpty()) globalOverlays.setVisible(false);
     }
 
     @Override

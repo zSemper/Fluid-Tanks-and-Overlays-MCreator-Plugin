@@ -34,14 +34,14 @@ public class TankListEntry extends JSimpleListEntry<FluidTanks.TankListEntry> {
         fluidRestrictions.setPreferredSize(new Dimension(400, Constants.HEIGHT));
         type.setPreferredSize(Constants.DIMENSION);
 
-        this.line.add(HelpUtils.wrapWithHelpButton(gui.withEntry("fluid_tanks/tank_index"), L10N.label("elementGui.tankListEntry.tankIndex", Constants.NO_PARAMS)));
-        this.line.add(indexLabel);
-        this.line.add(HelpUtils.wrapWithHelpButton(gui.withEntry("fluid_tanks/tanks/type"), L10N.label("elementGui.tankListEntry.tankType", Constants.NO_PARAMS)));
-        this.line.add(type);
-        this.line.add(L10N.label("elementGui.tankListEntry.tankSize", Constants.NO_PARAMS));
-        this.line.add(size);
-        this.line.add(HelpUtils.wrapWithHelpButton(gui.withEntry("fluid_tanks/tanks/fluid_restrictions"), L10N.label("elementGui.tankListEntry.fluidRestrictions", Constants.NO_PARAMS)));
-        this.line.add(fluidRestrictions);
+        line.add(HelpUtils.wrapWithHelpButton(gui.withEntry("fluid_tanks/tank_index"), L10N.label("elementGui.tankListEntry.tankIndex")));
+        line.add(indexLabel);
+        line.add(HelpUtils.wrapWithHelpButton(gui.withEntry("fluid_tanks/tanks/type"), L10N.label("elementGui.tankListEntry.tankType")));
+        line.add(type);
+        line.add(L10N.label("elementGui.tankListEntry.tankSize"));
+        line.add(size);
+        line.add(HelpUtils.wrapWithHelpButton(gui.withEntry("fluid_tanks/tanks/fluid_restrictions"), L10N.label("elementGui.tankListEntry.fluidRestrictions")));
+        line.add(fluidRestrictions);
     }
 
     public void reloadDataLists() {
@@ -50,9 +50,9 @@ public class TankListEntry extends JSimpleListEntry<FluidTanks.TankListEntry> {
 
     @Override
     protected void setEntryEnabled(boolean enabled) {
-        this.size.setEnabled(enabled);
-        this.fluidRestrictions.setEnabled(enabled);
-        this.type.setEnabled(enabled);
+        size.setEnabled(enabled);
+        fluidRestrictions.setEnabled(enabled);
+        type.setEnabled(enabled);
     }
 
     @Override

@@ -10,6 +10,8 @@
   "output": "FluidStack",
   "colour": "#00c8d5",
   "mcreator": {
+    "group": "ftao05",
+    "toolbox_id": "ftao",
     "fields": [
       "fluid"
     ]

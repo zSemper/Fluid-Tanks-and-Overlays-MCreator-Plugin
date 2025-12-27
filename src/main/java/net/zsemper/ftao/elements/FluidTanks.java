@@ -4,7 +4,6 @@ import net.mcreator.element.GeneratableElement;
 import net.mcreator.element.parts.Fluid;
 import net.mcreator.workspace.elements.ModElement;
 import net.mcreator.workspace.references.ModElementReference;
-import net.zsemper.ftao.parts.TankListEntry;
 
 import java.util.List;
 
@@ -33,6 +32,7 @@ public class FluidTanks extends GeneratableElement {
 
         public int xPos;
         public int yPos;
+        public int width;
         public int height;
         public int index;
     }
